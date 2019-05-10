@@ -9,7 +9,7 @@ class VolusionOrderImport(models.Model):
     file_name = fields.Char("File Name")
     date = fields.Char("Import Date")
     order_count = fields.Integer("Order Count")
-    order_value = fields.Monetary("Order Value")
+    #order_value = fields.Monetary("Order Value")
     messages = fields.Html("Messages")
 
     _sql_constraints = [
