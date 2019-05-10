@@ -21,7 +21,7 @@
 
         <record id="view_order_import_tree" model="ir.ui.view">
             <field name="name">sale.order.import.tree</field>
-            <field name="model">sale.import</field>
+            <field name="model">sale.order.import</field>
             <field name="priority">2</field>
             <field name="arch" type="xml">
                 <tree string="Volusion Imports">
