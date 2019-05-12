@@ -29,6 +29,8 @@
                 </tree>
             </field>
         </record>
+        
+        <!-- build an action first...
 
         <record id="sale_import_action_view_order_tree" model="ir.actions.act_window.view">
             <field name="sequence" eval="1"/>
@@ -36,6 +38,8 @@
             <field name="view_id" ref="view_order_import_tree"/>
             <field name="act_window_id" ref="action_orders"/>
         </record>
+
+        --> 
 
 
     </data>
