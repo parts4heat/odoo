@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<odoo>
+    <record forcecreate="True" id="unmapped_delivery_carrier" model="delivery.carrier">
+        <field name="name">Unmapped Volusion Carrier</field>
+        <field name="delivery_type">fixed</field>
+        <field name="product_id" ref="delivery.product_product_delivery_normal"/>
+        <field name="fixed_price">0.00</field>
+    </record>
+</odoo>
