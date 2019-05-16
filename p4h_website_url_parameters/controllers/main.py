@@ -9,8 +9,9 @@ class WebsiteSale(WebsiteSale):
 
     @http.route(['/shop/cart'], type='http', auth="public", website=True)
     def cart(self, **post):
-        order = request.website.sale_get_order()
+        orders = request.website.sale_get_order()
         u = urlparse(request.httprequest.referrer)
-        order.referrer = u.netloc + u.path
-        order.model_searched = u.query
+        for order in orders:
+          order.referrer = u.netloc + u.path
+          order.model_searched = u.query
         return super(WebsiteSale, self).cart(**post)
