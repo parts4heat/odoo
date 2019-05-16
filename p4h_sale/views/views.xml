@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+
+<record model="ir.ui.view" id="p4h_sale_order_form_view_inherit">
+  <field name="name">p4h sale order extra fields</field>
+  <field name="model">sale.order</field>
+  <field name="inherit_id" ref="sale.view_order_form" />
+  <field name="arch" type="xml">
+
+<data>
+<!-- Add ON HOLD Warning -->
+<!--
+<field name="partner_id" position="before">
+  <field name="referrer"/>
+  <field name="model_searched"/>
+  <field name="model_entered"/>
+  <field name="serial_entered"/> 
+  <field name="hold"/>
+</field>
+
+<sheet position="before">
+  <div class="alert alert-danger" role="alert" style="margin-bottom:0px;" attrs="{'invisible': [('hold','=',False)]}">
+    This Order has been placed <b>ON HOLD.</b>
+    <field name="hold_message" readonly="1"/> 
+  </div>
+</sheet>
+-->
+</data>
+
+  </field>
+</record>
+
+
+</data>
+</odoo>

@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+        <record id="p4h_website_sale_products" model="ir.ui.view">
+            <field name="name">Products Custom.p4h</field>
+            <field name="key">products_custom</field>
+            <field name="inherit_id" ref="website_sale.products"/>
+            <field name="arch" type="xml">
+              <data>
+<t t-call="website.layout" position="before">
+  <t t-if="bins and len(bins[0]) == 1">
+    <style type="text/css">body { display: none; } </style>
+    <meta http-equiv="refresh" t-attf-content="0;url=/shop/product/{{ bins[0][0]['product'].id }}" />
+  </t>
+</t>
+              </data>
+            </field>
+        </record>
+
+
+        <record id="p4h_website_sale_products_item" model="ir.ui.view">
+            <field name="name">Products item Custom.p4h</field>
+            <field name="key">products.item_custom</field>
+            <field name="inherit_id" ref="website_sale.products_item"/>
+            <field name="arch" type="xml">
+              <data>
+
+<section position="replace">
+
+  <t t-if="product.product_class == 'm'">
+                <section>
+
+  <h6>
+   <a itemprop="name" t-att-href="product_href">
+    <span style="color: DarkBlue">
+     <br/>
+     <b>Heater Model
+     <t t-if="product.mfg_id">
+      <br/>by <span t-field="product.mfg_id"/>
+     </t>- <span t-field="product.default_code"/></b><br/>
+     <span t-field="product.name"/><br/>
+     CLICK FOR PARTS FOR THIS MODEL
+   </span>
+   </a>
+   <a role="button" t-if="not show_publish and not product.website_published"
+                    t-att-href="product_href" class="btn btn-secondary btn-sm btn-danger"
+                    title="This product is unpublished.">Unpublished</a>
+  </h6>
+                </section>
+  </t>
+
+  <t t-if="product.product_class == 'p'">
+                <section>
+
+  <h6>
+   <a itemprop="name" t-att-href="product_href">
+    <span style="color: Maroon">
+     <br/>
+     <b>Replacement Part
+     <span t-field="product.default_code"/></b><br/>
+     <span t-field="product.name"/><br/>
+   </span>
+   </a>
+   <a role="button" t-if="not show_publish and not product.website_published"
+                    t-att-href="product_href" class="btn btn-secondary btn-sm btn-danger"
+                    title="This product is unpublished.">Unpublished</a>
+  </h6>
+                      <div itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer" class="product_price" t-if="product.product_variant_ids">
+                        <b>
+                            <t t-if="product.product_variant_id and product.website_price_difference and website.get_current_pricelist().discount_policy=='without_discount'">
+                                <del class="text-danger mr8" style="white-space: nowrap;" t-esc="compute_currency(product.website_public_price)" t-options="{'widget': 'monetary', 'display_currency': website.get_current_pricelist().currency_id, 'from_currency': website.currency_id}"/>
+                            </t>
+                            <span t-esc="product.website_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                            <span itemprop="price" style="display:none;" t-esc="product.website_price"/>
+                            <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name"/>
+                        </b>
+                    </div>
+
+                </section>
+  </t>
+
+  </section>
+
+              </data>
+            </field>
+        </record>
+
+
+
+        <record id="p4h_website_sale_product_custom" model="ir.ui.view">
+            <field name="name">Product Custom.p4h</field>
+            <field name="key">product_custom</field>
+            <field name="inherit_id" ref="website_sale.product"/>
+            <field name="arch" type="xml">
+<data>
+
+<!-- Show Model and attributes before the image on the page --> <div itemprop="image" position="before">
+  <t t-if="product.product_class =='m'">
+    <h2>REPLACEMENT PARTS FOR: <span t-field="product.default_code"/></h2>
+  </t> </div>
+
+<!-- Breadcrumbs show real Internal Reference if model, otherwise P4H code. --> <span t-field="product.name" position="replace">
+  <t t-if="product.product_class == 'm'">
+    <span t-field="product.default_code"/>
+  </t>
+  <t t-if="product.product_class != 'm'">
+    <span t-field="product.p4h_code"/>
+  </t> </span> <!-- HIDE PRICE --> <form position="replace">
+  <t t-if="product.product_class != 'm'">
+                            <form action="/shop/cart/update" method="POST">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <div class="js_product js_main_product">
+                                    <t t-placeholder="select">
+                                        <input type="hidden" class="product_id" name="product_id"
+                                               t-att-value="product.product_variant_id.id if len(product.product_variant_ids) == 1 else
+'0'"/>
+                                        <input type="hidden" class="product_template_id" name="product_template_id"
+t-att-value="product.id"/>
+                                        <t t-call="sale.variants">
+                                            <t t-set="ul_class" t-value="'flex-column'"/>
+                                        </t>
+                                    </t>
+                                    <t t-call="website_sale.product_price"/>
+                                    <p t-if="product.has_dynamic_attributes() or len(product.product_variant_ids) &gt; 1"
+                                      class="css_not_available_msg bg-danger" style="padding: 15px;">This combination does not exist.</p>
+                                    <a role="button" id="add_to_cart" class="btn btn-primary btn-lg mt8 js_check_product a-submit"
+                                       href="#">Add to Cart</a>
+                                </div>
+                            </form>
+  </t> </form>
+
+<!-- REMOVE WARRANTY INFO FOR MODEL --> 
+
+  <p class="text-muted" position="replace">
+  <t t-if="product.product_class != 'm'">
+                            <p class="text-muted o_not_editable">
+                              30-day money-back guarantee<br/>
+                              Free Shipping in U.S.<br/>
+                              Buy now, get in 2 days
+                            </p>
+
+  </t>
+  <t t-if="product.product_class == 'm'">
+    <p class="text-muted">
+    <b>Not sure which Part is the right one?</b> <br/>
+    Our unique Model Match step during Checkout will help.  We also have a place in your Shopping Cart where you can send us your
+Questions/Concerns!<br/>
+    <br/> <b>Same Day and Overnight Shipping Available</b><br/>
+  </p>
+  </t> </p> 
+
+
+<!-- TABLE --> <div position="after" t-field="product.website_description">
+  <div class="container mt32" t-if="product.part_ids">
+                <h3>Parts for <span t-field="product.mfg_id"/> Model <span t-field="product.default_code"/> - <span
+t-field="product.name"/>:</h3>
+                <div class="row mt16" style="">
+                  <table border="1" width="100%">
+                    <tr>
+                      <th style="padding: 15px;">Section</th>
+                      <th style="padding: 15px;text-align: center;">Callout</th>
+                      <th style="padding: 15px;text-align: center">Photo</th>
+                      <t t-if="product.dependency_1_label">
+                      <th style="padding: 15px;text-align: center"><span t-field="product.dependency_1_label"/></th>
+                      </t>
+                      <t t-if="product.dependency_2_label">
+                      <th style="padding: 15px;text-align: center"><span t-field="product.dependency_2_label"/></th>
+                      </t>
+                      <t t-if="product.dependency_3_label">
+                      <th style="padding: 15px;text-align: center"><span t-field="product.dependency_3_label"/></th>
+                      </t>
+                      <th style="padding: 15px;text-align: center">Qty Required</th>
+                      <th style="padding-left: 15px;">Part</th>
+                    </tr>
+                    <t t-foreach="product.part_ids" t-as="alt_product">
+                        <tr>
+                          <td style="padding: 15px;">
+                            <span t-field="alt_product.group" class="o_text_overflow" style="display: block;"/>
+                          </td>
+                          <td style="text-align: center;padding-left: 5px;padding-top: 14px; padding-bottom: 11px;">
+                            <span t-field="alt_product.callout" class="o_text_overflow" style="background: #B3B3B3;
+  border-radius: 1.6em;
+  -moz-border-radius: 1.6em;
+  -webkit-border-radius: 1.6em;
+  color: #000000;
+  display: inline-block;
+  font-weight: bold;
+  line-height: 3em;
+  margin-right: 5px;
+  text-align: center;
+  width: 3em;"/>
+                          </td>
+                          <td style="padding: 15px;">
+                           <div style="height: 100%;vertical-align: middle;align:center;" class="mt16">
+                             <t t-if="alt_product.part_id.image_small">
+                                    <a t-attf-href="/shop/product/#{ slug(alt_product.part_id) }?model={{ product.default_code }}"
+style="display: block">
+                                           <div t-field="alt_product.part_id.image_small"
+                                           t-options="{'widget': 'image', 'class': 'img-rounded shadow o_alternative_product' }"/>
+                                    </a>
+
+
+
+                             </t>
+                            </div>
+                          </td>
+                          <t t-if="product.dependency_1_label">
+                            <td style="padding: 15px;">
+                              <span t-field="alt_product.dependency1" class="o_text_overflow" style="display: block;"/>
+                            </td>
+                          </t>
+                          <t t-if="product.dependency_2_label">
+                            <td style="padding: 15px;">
+                              <span t-field="alt_product.dependency2" class="o_text_overflow" style="display: block;"/>
+                            </td>
+                          </t>
+                          <t t-if="product.dependency_3_label">
+                            <td style="padding: 15px;">
+                              <span t-field="alt_product.dependency3" class="o_text_overflow" style="display: block;"/>
+                            </td>
+                          </t>
+                          <td style="text-align: center;">
+                            <span t-field="alt_product.quantity" class="o_text_overflow" style="display: block;"/>
+                          </td>
+                          <td style="padding: 15px;">
+                              <h5>
+                                    <a t-attf-href="/shop/product/#{ slug(alt_product.part_id) }?model={{ product.default_code }}"
+style="display: block">
+                                        <span>
+                                        <span t-att-title="alt_product.part_id.p4h_code" t-field="alt_product.part_id.p4h_code"/> -
+                                        <span t-att-title="alt_product.part_id.p4h_code" t-field="alt_product.part_id.default_code"/> -
+                                        <span t-att-title="alt_product.part_id.name" t-field="alt_product.part_id.name"/>
+                                        </span>
+                                    </a>
+                                </h5>
+                          </td>
+                        </tr>
+                    </t>
+                    </table>
+                </div>
+            </div>
+              <br/>
+  <br/>
+  </div>
+
+
+              </data>
+            </field>
+        </record>
+
+
+
+</data>
+</odoo>
