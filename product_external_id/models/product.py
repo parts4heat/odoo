@@ -33,21 +33,14 @@ class productTemplate(models.Model):
 
     @api.onchange('default_code')
     def onchange_default_code(self):
-        _logger.info("ON CHANGE")
         if self.default_code:
-          _logger.info("DEFAULT_CODE CHANGED")
           self.env.cr.execute("SELECT * FROM ir_model_data WHERE module=%s and name=%s",('p4h',self.default_code))
           if self.env.cr.rowcount > 0:
-            _logger.info(">0") 
             raise ValidationError('A part with Internal Reference ' + self.default_code + ' already exists!')
           if '.' in self.default_code:
-            _logger.info('. IN')
             raise ValidationError('Internal Reference cannot contain a period!')
           if self._origin:
-            _logger.info('HAS ORIGIN')
             if self._origin.default_code != self.default_code:
-              _logger.info('ORIGINAL DEFAULT CODE: ' + self._origin.default_code)
-              _logger.info('NEW DEFAULT CODE: ' + self._origin.default_code)
               self.env.cr.execute("DELETE FROM ir_model_data WHERE module=%s and name=%s", ('p4h',self._origin.default_code))
               self.env.cr.execute(""" INSERT INTO ir_model_data (module, name, model, res_id, date_init, date_update)
                                       VALUES (%s, %s, %s, %s, (now() at time zone 'UTC'), (now() at time zone 'UTC')) """,
@@ -57,9 +50,7 @@ class productTemplate(models.Model):
     @api.model
     def create(self, vals):
       res = super(productTemplate, self).create(vals)
-      _logger.info("CREATE")
       for record in res:
-        _logger.info("RECORD: "+ record.default_code)
         if record.default_code:
           self.env.cr.execute(""" INSERT INTO ir_model_data (module, name, model, res_id, date_init, date_update)
                                   VALUES (%s, %s, %s, %s, (now() at time zone 'UTC'), (now() at time zone 'UTC')) """,
