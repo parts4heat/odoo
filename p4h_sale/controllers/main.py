@@ -27,7 +27,7 @@ class P4HWebsiteSale(http.Controller):
 
     @http.route(['/shop/product/<model("product.template"):product>'], type='http', auth="public", website=True)
     def product(self, product, category='', search='', **kwargs):
-        res = sper(P4HWebsiteSale, self).product(product, category='', search='', **kwargs)
+        res = super(P4HWebsiteSale, self).product(product, category='', search='', **kwargs)
         values = {
             'source_url': request.httprequest.url,
             'manual_set': True,
