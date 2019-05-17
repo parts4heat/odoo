@@ -6,7 +6,7 @@ from werkzeug.exceptions import Forbidden, NotFound
 
 from odoo import http, tools, _
 from odoo.http import request
-from odoo.addons.base.ir.ir_qweb.fields import nl2br
+#from odoo.addons.base.ir.ir_qweb.fields import nl2br
 from odoo.addons.http_routing.models.ir_http import slug
 from odoo.addons.website.controllers.main import QueryURL
 from odoo.exceptions import ValidationError
