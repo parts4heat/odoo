@@ -1,0 +1,69 @@
+<odoo>
+<data>
+
+         <record model="ir.ui.view" id="model_part_search">
+            <field name="name">model.part.search</field>
+            <field name="model">model.part</field>
+            <field name="type">search</field>
+            <field name="arch" type="xml">
+              <search>
+  <field name="model_default_code"/>
+  <field name="model_name"/>
+  <field name="model_id"/>
+  <field name="part_default_code"/>
+  <field name="part_name"/>
+  <field name="part_id"/>
+  <field name="source_doc"/>
+  <field name="heater_code"/>
+  <field name="heater_sizes"/>
+  <field name="group"/>
+  <field name="callout"/>
+  <field name="dependency1"/>
+  <field name="dependency2"/>
+  <field name="dependency3"/>
+              </search>
+            </field>
+        </record>
+
+         <record model="ir.ui.view" id="model_part_tree">
+            <field name="name">model.part.tree</field>
+            <field name="model">model.part</field>
+            <field name="arch" type="xml">
+              <tree>
+  <field name="model_default_code" string="Model Int. Ref."/>
+  <field name="model_name"/>
+  <field name="model_id"/>
+  <field name="part_default_code" string="Part Int. Ref."/>
+  <field name="part_name"/>
+  <field name="part_id"/>
+  <field name="source_doc"/>
+  <button name="action_open_manual" string="View Attached Documents" type="object" icon="fa-paperclip"/>
+  <field name="heater_code"/>
+  <field name="heater_sizes"/>
+  <field name="image_medium" widget="image" class="oe_right oe_avatar"/>
+  <field name="group"/>
+  <field name="callout"/>
+  <field name="dependency1" string="Dep 1"/>
+  <field name="dependency2" string="Dep 2"/>
+  <field name="dependency3" string="Dep 3"/>
+              </tree>
+            </field>
+        </record>
+
+
+        <record id="action_model_parts" model="ir.actions.act_window">
+            <field name="name">Model Parts</field>
+            <field name="res_model">model.part</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem
+            action="action_model_parts"
+            id="menu_model_parts"
+            parent="stock.menu_stock_inventory_control"
+            sequence="200"/>
+
+</data>
+</odoo>
+

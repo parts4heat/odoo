@@ -4,4 +4,3 @@ id,name,perm_create,perm_unlink,group_id:id,model_id:id,perm_read,perm_write
 "access_exploded_view","Everyone All","True","True","base.group_user","p4h_sale.model_exploded_view","True","True"
 "access_model_part","Everyone All","True","True","base.group_user","p4h_sale.model_model_part","True","True"
 "access_mif_file","Everyone All","True","True","base.group_user","p4h_sale.model_mif_file","True","True"
-
