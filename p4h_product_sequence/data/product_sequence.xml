@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  product_sequence for Odoo
+  Copyright 2004 Tiny SPRL
+  Copyright 2016 Sodexis
+  The licence is in the file __openerp__.py
+-->
+
+<odoo noupdate="1">
+    <record id="seq_product_auto" model="ir.sequence">
+        <field name="name">Product</field>
+        <field name="code">product.product</field>
+		<field eval="10000000" name="number_next" />
+        <field eval="8" name="padding" />
+        <field name="prefix">P</field>
+    </record>
+</odoo>

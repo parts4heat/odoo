@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<odoo>
-    <data noupdate="1">
-        <record id="blog_blog_part4heater" model="blog.blog">
-            <field name="name">Part4Heater</field>
-            <field name="subtitle">Models</field>
-        </record>
-    </data>
-</odoo>
