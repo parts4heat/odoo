@@ -10,7 +10,7 @@ class SaleOrderLine(models.Model):
     original_product_id = fields.Many2one(
         'product.product', string='Ordered',
         domain=[('sale_ok', '=', True)],
-        required=True, readonly=True, states={'draft': [('readonly', False)],
+        readonly=True, states={'draft': [('readonly', False)],
                                               'sent': [('readonly', False)],
                                               'sale': [('readonly', False)]},)
 

@@ -84,6 +84,7 @@ class ProductTemplate(models.Model):
     _name = 'product.template'
     _inherit = 'product.template'
 
+    product_class = fields.Selection(string='Class',selection=[('m', 'Model'),('p','Part'),('s','Standard')], default='s')
     procurement_method = fields.Selection([
         ('odoo', 'Default (match product)'),
         ('list', 'Alternate (cheapest from list)')], string='Procurement Method',
