@@ -2,6 +2,7 @@ id,name,perm_create,perm_unlink,group_id:id,model_id:id,perm_read,perm_write
 "product_alternative_security","product.alternative all","True","True","stock.group_stock_user","p4h_sale.model_product_alternative","True","True"
 "access_product_attribute_line","Everyone All","True","True","base.group_user","p4h_sale.model_product_attribute_line","True","True"
 "access_exploded_view","Everyone All","True","True","base.group_user","p4h_sale.model_exploded_view","True","True"
+"access_exploded_view_public","Public All","True","True","p4h_sale.model_exploded_view","True","True"
 "access_model_part","Everyone All","True","True","base.group_user","p4h_sale.model_model_part","True","True"
-"access_model_part_public","Public All","True","True","base.group_public","p4h_sale.model_model_part","True","True"
+"access_model_part_public","Public All","True","True",,"p4h_sale.model_model_part","True","True"
 "access_mif_file","Everyone All","True","True","base.group_user","p4h_sale.model_mif_file","True","True"
