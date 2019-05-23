@@ -126,6 +126,19 @@
                     <div class="o_setting_left_pane">
                     </div>
                     <div class="o_setting_right_pane">
+                        <label for="image_ftp_type"/>
+                        <div class="text-muted">
+                            Image FTP Type
+                        </div>
+                        <div class="content-group">
+                            <field name="image_ftp_type"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
                         <label for="image_ftp_last_update"/>
                         <div class="text-muted">
                             Last time the image creation cron ran
@@ -219,6 +232,19 @@
                     <div class="o_setting_left_pane">
                     </div>
                     <div class="o_setting_right_pane">
+                        <label for="order_ftp_type"/>
+                        <div class="text-muted">
+                            Order FTP Type
+                        </div>
+                        <div class="content-group">
+                            <field name="order_ftp_type"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
                         <label for="order_default_team"/>
                         <div class="text-muted">
                             Sales team applied to all new orders
@@ -238,6 +264,19 @@
                         </div>
                         <div class="content-group">
                             <field name="order_default_product"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="order_default_credit_product"/>
+                        <div class="text-muted">
+                            Product applied if its credit/void/decline/failed
+                        </div>
+                        <div class="content-group">
+                            <field name="order_default_credit_product"/>
                         </div>
                     </div>
                 </div>
