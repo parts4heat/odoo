@@ -421,8 +421,8 @@ class ResCompany(models.Model):
                                 "origin": "VOLUSION %s" % (l["order_entry_system"]),
                                 "note": "%s\n%s\n%s"
                                 % (l["shipdate"], l["order_comments"], l["ordernotes"]),
-                                "date_order": "2019-01-01 00:00:00",
-                                "shipdate": "2019-01-01 00:00:00",
+                                "date_order": l["orderdate"],
+                                "shipdate": l["shipdate"],
                                 "shipresidential": True
                                 if l["shipresidential"] == "Y"
                                 else False,
@@ -465,7 +465,7 @@ class ResCompany(models.Model):
                                 "partner_country_id": partner_id.country_id.id,
                                 "partner_id": partner_id.id,
                                 "reference": l["pay_orderid"],
-                                "date": "2019-01-01 00:00:00",
+                                "date": l["pay_authdate"],
                                 "state_message": tx_ref,
                                 "state": "done",  # pending
                                 "type": "form",
@@ -558,18 +558,23 @@ class ResCompany(models.Model):
                     try:
                         payment._post_process_after_done()
                     except Exception as e:
-                        _logger.error("Error while processing payment %s" % (payment))
+                        _logger.error(
+                            "Error while processing payment for  %s" % (payment.id)
+                        )
                         _logger.error(e)
                         continue
 
-                if company.order_ftp_type == "sftp":
+                if company.image_ftp_type == "sftp":
                     try:
                         session.rename(
                             "%s%s" % (path, name.filename),
                             "%s%s" % (endpath, name.filename),
                         )
                     except Exception as e:
-                        _logger.error("Error while processing payment %s" % (payment))
+                        _logger.error(
+                            "Error while moving file %s to processed folder"
+                            % (name.filename)
+                        )
                         _logger.error(e)
                 else:
                     os.remove(name)
