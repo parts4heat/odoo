@@ -61,7 +61,7 @@ class ResCompany(models.Model):
 
     def _sftp_helper(self, sftp, files, last_update):
         stats = sftp.listdir_attr(".")
-        prod_passing = ""
+        prod_passing = False
         prod_passing_id = 0
         for attr in stats:
             if datetime.datetime.fromtimestamp(attr.st_mtime) > last_update:
@@ -85,7 +85,7 @@ class ResCompany(models.Model):
                         prod_passing = prod_code
                         prod_passing_id = prod.id
 
-                    if prod:
+                    if prod_passing:
                         try:
                             _logger.info("Creating image for %s" % (file_name))
                             data = sftp.open(file_name).read()
