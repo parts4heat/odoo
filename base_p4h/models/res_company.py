@@ -421,8 +421,8 @@ class ResCompany(models.Model):
                                 "origin": "VOLUSION %s" % (l["order_entry_system"]),
                                 "note": "%s\n%s\n%s"
                                 % (l["shipdate"], l["order_comments"], l["ordernotes"]),
-                                "date_order": l["orderdate"],
-                                "shipdate": l["shipdate"],
+                                "date_order": "2019-01-01 00:00:00",
+                                "shipdate": "2019-01-01 00:00:00",
                                 "shipresidential": True
                                 if l["shipresidential"] == "Y"
                                 else False,
@@ -465,7 +465,7 @@ class ResCompany(models.Model):
                                 "partner_country_id": partner_id.country_id.id,
                                 "partner_id": partner_id.id,
                                 "reference": l["pay_orderid"],
-                                "date": l["pay_authdate"],
+                                "date": "2019-01-01 00:00:00",
                                 "state_message": tx_ref,
                                 "state": "done",  # pending
                                 "type": "form",
