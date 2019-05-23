@@ -555,12 +555,22 @@ class ResCompany(models.Model):
                         continue
 
                 for payment in payments_processed:
-                    payment._post_process_after_done()
-                if company.image_ftp_type == "sftp":
-                    session.rename(
-                        "%s%s" % (path, name.filename),
-                        "%s%s" % (endpath, name.filename),
-                    )
+                    try:
+                        payment._post_process_after_done()
+                    except Exception as e:
+                        _logger.error("Error while processing payment %s" % (payment))
+                        _logger.error(e)
+                        continue
+
+                if company.order_ftp_type == "sftp":
+                    try:
+                        session.rename(
+                            "%s%s" % (path, name.filename),
+                            "%s%s" % (endpath, name.filename),
+                        )
+                    except Exception as e:
+                        _logger.error("Error while processing payment %s" % (payment))
+                        _logger.error(e)
                 else:
                     os.remove(name)
                     session.rename("%s%s" % (path, name), "%s%s" % (endpath, name))
