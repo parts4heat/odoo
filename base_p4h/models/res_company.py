@@ -155,7 +155,7 @@ class ResCompany(models.Model):
                 _logger.info("FTP order processed path: %s%s" % (ip, endpath))
                 session.cwd(path)
 
-            if company.image_ftp_type == "sftp":
+            if company.order_ftp_type == "sftp":
                 names = session.listdir_attr(".")
                 names = [k for k in names if ".csv" in k.filename]
             else:
@@ -165,7 +165,7 @@ class ResCompany(models.Model):
             # Loop through the files and convert them to json dictionaries
             for name in names:
                 data = []
-                if company.image_ftp_type == "sftp":
+                if company.order_ftp_type == "sftp":
                     inf = session.open(name.filename)
                     for row in csv.DictReader(inf):
                         data.append(row)
@@ -564,7 +564,7 @@ class ResCompany(models.Model):
                         _logger.error(e)
                         continue
 
-                if company.image_ftp_type == "sftp":
+                if company.order_ftp_type == "sftp":
                     try:
                         session.rename(
                             "%s%s" % (path, name.filename),
