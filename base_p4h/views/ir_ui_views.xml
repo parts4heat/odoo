@@ -1,6 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
   <data>
+    <record model="ir.ui.view" id="view_picking_form_mod">
+      <field name="name">x_gfp.stock.picking.form.mod</field>
+      <field name="model">stock.picking</field>
+      <field name="inherit_id" ref="stock.view_picking_form"/>
+      <field name="priority">98</field>
+      <field name="arch" type="xml">
+        <data>
+          <xpath expr="//field[@name='move_line_ids_without_package']//tree//field[@name='product_id']" position="after">
+            <field name="storage_location_id"
+            attrs="{
+                'column_invisible': [('parent.picking_type_code', '=','outgoing')],
+            }"/>
+          </xpath>
+          <xpath expr="//field[@name='move_ids_without_package']//tree//field[@name='product_id']" position="after">
+            <field name="storage_location_id"
+            attrs="{
+                'column_invisible': [('parent.picking_type_code', '=','outgoing')],
+            }"/>
+          </xpath>
+        </data>
+      </field>
+    </record>
+    <record model="ir.ui.view" id="mrp_bom_form_view_mod">
+      <field name="name">x_gfp.mrp.bom.form.mod</field>
+      <field name="model">mrp.bom</field>
+      <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+      <field name="priority">98</field>
+      <field name="arch" type="xml">
+        <data>
+          <xpath expr="//field[@name='bom_line_ids']//tree//field[@name='product_id']" position="after">
+            <field name="standard_price"/>
+            <field name="qty_available"/>
+          </xpath>
+        </data>
+      </field>
+    </record>
+    <record model="ir.ui.view" id="product_template_form_view">
+      <field name="name">x_gfp.product.template.form.mod</field>
+      <field name="model">product.template</field>
+      <field name="inherit_id" ref="product.product_template_form_view"/>
+      <field name="priority">98</field>
+      <field name="arch" type="xml">
+        <data>
+        <xpath expr="//header" position="after">
+            <field name="bom_count" invisible="1"/>
+            <div align="center" style="background-color:#FFA500;" attrs="{'invisible':[('bom_count','=',0)]}">
+              <div>
+                <div>
+                <strong>NOTE: This part can be manufactured in-house</strong>
+                </div>
+              </div>
+            </div>
+          </xpath>
+          <xpath expr="//group[@name='group_lots_and_weight']/label" position="before">
+            <field name="storage_location_id"/>
+          </xpath>
+        </data>
+      </field>
+    </record>
+    <record model="ir.ui.view" id="product_template_form_view_procurement_button_mod">
+      <field name="name">x_gfp.product.template.procurement.form.mod</field>
+      <field name="model">product.template</field>
+      <field name="inherit_id" ref="stock.product_template_form_view_procurement_button"/>
+      <field name="priority">98</field>
+      <field name="arch" type="xml">
+        <data>
+          <xpath expr="//field[@name='qty_available']" position="replace">
+            <field name="qty_available" invisible="1"/>
+            <field name="ph_qty_available" widget="statinfo" nolabel="1" class="mr4"/>
+          </xpath>
+          <xpath expr="//field[@name='virtual_available']" position="replace">
+            <field name="virtual_available" invisible="1"/>
+            <field name="ph_virtual_available" widget="statinfo" nolabel="1" class="mr4"/>
+          </xpath>
+          <xpath expr="//field[@name='qty_available_not_res']/../../.." position="attributes">
+            <attribute name="name">action_open_quants_unreserved</attribute>
+          </xpath>
+          <xpath expr="//field[@name='virtual_available']/../../.." position="attributes">
+            <attribute name="name">action_open_ph_forecast</attribute>
+            <attribute name="type">object</attribute>
+          </xpath>
+        </data>
+      </field>
+    </record>
     <record model="ir.ui.view" id="view_order_form_mod">
       <field name="name">x_gfp.sale.order.form.mod</field>
       <field name="model">sale.order</field>
