@@ -35,7 +35,7 @@ class SaleOrder(models.Model):
                         return True
                     products_in_stock = []
                     for product in line.product_id.alternate_ids:
-                        if product.qty_available_not_res >= line.product_uom_qty:
+                        if product.product_alt_id.qty_available_not_res >= line.product_uom_qty:
                             products_in_stock.append(product)
                     if len(products_in_stock) == 0:
                         record.message_post(body="None of the Alternates for Product " + product_name + " are in stock " + \
