@@ -28,14 +28,14 @@ class SaleOrder(models.Model):
                         product_name = "'[" + line.product_id.default_code + "] " + line.product_id.name + "'"
                     else:
                         product_name = "'" + line.product_id.name + "'"
-                    if len(line.product_id.alternate_ids) == 0:
+                    if len(line.product_id.product_tmpl_id.alternate_ids) == 0:
                         record.message_post(body="Product " + product_name + " is configured for Alternate Procurement " + \
                                         "but has no Alternate Products set! Please correct this by " + \
                                         "changing the Procurement Method or definint a list of Alternate Products.")
                         return True
                     products_in_stock = []
-                    for product in line.product_id.alternate_ids:
-                        if product.qty_available_not_res >= line.product_uom_qty:
+                    for product in line.product_id.product_tmpl_id.alternate_ids:
+                        if product.product_alt_id.qty_available_not_res >= line.product_uom_qty:
                             products_in_stock.append(product)
                     if len(products_in_stock) == 0:
                         record.message_post(body="None of the Alternates for Product " + product_name + " are in stock " + \
