@@ -58,6 +58,18 @@ class ResCompany(models.Model):
     order_default_credit_product = fields.Many2one(
         "product.product", string="Order Default Credit Product"
     )
+    purchase_ftp_address = fields.Char(string="Purchase FTP Address")
+    purchase_ftp_user = fields.Char(string="Purchase FTP User")
+    purchase_ftp_password = fields.Char(string="Purchase FTP Password")
+    purchase_ftp_port = fields.Char(string="Purchase FTP Port")
+    purchase_ftp_folder = fields.Char(string="New Purchase FTP Folder")
+    purchase_done_ftp_folder = fields.Char(string="Processed Purchase FTP Folder")
+    purchase_ftp_type = fields.Selection(
+        [("ftp", "FTP"), ("sftp", "SFTP")], string="Purchase FTP Type", default="ftp"
+    )
+    purchase_default_product = fields.Many2one(
+        "product.product", string="Purchase Default Product"
+    )
 
     def _sftp_helper(self, sftp, files, last_update):
         stats = sftp.listdir_attr(".")
@@ -565,6 +577,243 @@ class ResCompany(models.Model):
                         continue
 
                 if company.order_ftp_type == "sftp":
+                    try:
+                        session.rename(
+                            "%s%s" % (path, name.filename),
+                            "%s%s" % (endpath, name.filename),
+                        )
+                    except Exception as e:
+                        _logger.error(
+                            "Error while moving file %s to processed folder"
+                            % (name.filename)
+                        )
+                        _logger.error(e)
+                else:
+                    os.remove(name)
+                    session.rename("%s%s" % (path, name), "%s%s" % (endpath, name))
+
+    @api.model
+    def run_cron_purchase_processing(self):
+        for company in self.env["res.company"].search([]):
+            _logger.info("Running Purchase Processing Cron for %s" % company.name)
+            if (
+                not company.purchase_ftp_address
+                or not company.purchase_ftp_user
+                or not company.purchase_ftp_password
+                or not company.purchase_ftp_port
+                or not company.purchase_ftp_folder
+                or not company.purchase_done_ftp_folder
+                or not company.purchase_ftp_type
+            ):
+                _logger.warning(
+                    "(S)FTP configuration not properly set, skipping company."
+                )
+                continue
+
+            ip = company.purchase_ftp_address
+            port = int(company.purchase_ftp_port)
+            user = company.purchase_ftp_user
+            pwd = company.purchase_ftp_password
+            path = company.purchase_ftp_folder
+            endpath = company.purchase_done_ftp_folder
+            path = re.sub("([/]{2,5})+", "/", path)
+            endpath = re.sub("([/]{2,5})+", "/", endpath)
+
+            # Intial (S)FTP configuration
+            if company.purchase_ftp_type == "sftp":
+                transport = paramiko.Transport((ip, port))
+                transport.connect(None, user, pwd)
+                session = paramiko.SFTPClient.from_transport(transport)
+                _logger.info("SFTP path: %s%s" % (ip, path))
+                _logger.info("SFTP order processed path: %s%s" % (ip, endpath))
+                session.chdir(path)
+            else:
+                session = ftplib.FTP()
+                session.connect(ip, port)
+                session.login(user, pwd)
+                _logger.info("FTP new order path: %s%s" % (ip, path))
+                _logger.info("FTP order processed path: %s%s" % (ip, endpath))
+                session.cwd(path)
+
+            if company.purchase_ftp_type == "sftp":
+                names = session.listdir_attr(".")
+                names = [k for k in names if ".csv" in k.filename]
+            else:
+                names = session.nlst()
+                names = [k for k in names if ".csv" in k]
+            _logger.info("Processing %s file(s)" % (len(names)))
+            # Loop through the files and convert them to json dictionaries
+            for name in names:
+                data = []
+                if company.purchase_ftp_type == "sftp":
+                    inf = session.open(name.filename)
+                    for row in csv.DictReader(inf):
+                        data.append(row)
+                else:
+                    session.retrbinary("RETR " + name, open(name, "wb").write)
+                    with open(name) as inf:
+                        for row in csv.DictReader(inf):
+                            data.append(row)
+                json_data = json.loads(json.dumps(data))
+                orders_processed = company.env["purchase.order"]
+                for l in json_data:
+                    try:
+                        order_id = company.env["purchase.order"].search(
+                            [("name", "=", l["po_num"])]
+                        )
+                        # Is this the first line in the order?
+                        if not order_id:
+                            # Look for existing customer, if not found create one
+                            partner_id = company.env["res.partner"].search(
+                                [("vendor_id", "=", l["vendor_id"])], limit=1
+                            )
+                            if not partner_id:
+                                _logger.info(
+                                    "Creating vendor with id  %s" % (l["vendor_id"])
+                                )
+                                # Setting blank variables
+                                city = state_id = False
+                                extra_loc_string = ""
+                                address_text = l["vendor_address"]
+                                address_array = address_text.splitlines()
+                                street = address_array[1]
+                                city_state_zip = address_array[-1]
+                                city_state_zip_array = city_state_zip.split(",")
+                                state_zip = city_state_zip_array[1]
+                                city = city_state_zip_array[0]
+                                state = state_zip.split()[0]
+                                zipcode = state_zip.split()[1]
+                                partner_id_dict = {
+                                    "name": l["vendor_title"],
+                                    "customer": False,
+                                    "supplier": True,
+                                    "is_company": True,
+                                    "email": l["vendor_emailaddress"],
+                                    "street": street,
+                                    "fax": l["vendor_faxnumber"],
+                                    "zip": zipcode,
+                                    "vendor_id": l["vendor_id"],
+                                }
+                                if len(address_array) > 3:
+                                    partner_id_dict.update(
+                                        {"street2": address_array[2]}
+                                    )
+                                if state:
+                                    state_id = company.env["res.country.state"].search(
+                                        [
+                                            ("code", "=", state),
+                                            (
+                                                "country_id",
+                                                "=",
+                                                company.env.ref("base.us").id,
+                                            ),
+                                        ],
+                                        limit=1,
+                                    )
+                                    if not state_id:
+                                        extra_loc_string = "%s%s" % (
+                                            state,
+                                            extra_loc_string,
+                                        )
+                                if len(extra_loc_string) > 0:
+                                    city = "%s %s" % (city, extra_loc_string)
+                                partner_id_dict.update({"city": city})
+                                if state_id:
+                                    partner_id_dict.update({"state_id": state_id.id})
+
+                                partner_id = company.env["res.partner"].create(
+                                    partner_id_dict
+                                )
+                            _logger.info(
+                                "Odoo res.partner %s selected for vendor"
+                                % (partner_id.id)
+                            )
+
+                            # Finding Delivery Method
+                            carrier_id = False
+                            carrier_id = company.env["delivery.carrier"].search(
+                                [("name", "=", l["vendor_po_shipvia"])]
+                            )
+                            if not carrier_id:
+                                carrier_id = company.env.ref(
+                                    "base_p4h.unmapped_delivery_carrier"
+                                )
+                            _logger.info(
+                                "Odoo delivery.carrier %s selected for shipping method"
+                                % (carrier_id.id)
+                            )
+
+                            # Finding Payment Term
+                            payment_term_id = False
+                            payment_term_id = company.env[
+                                "account.payment.term"
+                            ].search([("name", "=", l["vendor_po_terms"])])
+                            if not payment_term_id:
+                                payment_term_id = company.env.ref(
+                                    "base_p4h.unmapped_payment_term"
+                                )
+                            _logger.info(
+                                "Odoo payment term %s selected for term"
+                                % (payment_term_id.id)
+                            )
+
+                            notes = "Order Signed By: %s\nNotes:\n%s" % (
+                                l["vendor_po_signedby"],
+                                l["vendor_po_notes"],
+                            )
+                            order_dict = {
+                                "notes": notes,
+                                "payment_term_id": payment_term_id.id,
+                                "name": l["po_num"],
+                                "date_order": l["po_date"],
+                                "partner_id": partner_id.id,
+                                "carrier_id": carrier_id.id,
+                                "origin": "VOLUSION %s" % (l["po_num"]),
+                            }
+                            order_id = company.env["purchase.order"].create(order_dict)
+                            orders_processed |= order_id
+
+                        # Creating the line
+
+                        product_id = company.env["product.product"].search(
+                            [("default_code", "ilike", l["poi_productcode"])], limit=1
+                        )
+
+                        if not product_id:
+                            product_id = company.purchase_default_product
+                        _logger.info(
+                            "Odoo product.product %s selected for order line."
+                            % (product_id.id)
+                        )
+
+                        # Set the name for the line
+                        try:
+                            # Strip HTML from line name
+                            s = MLstripper()
+                            s.feed(l["poi_productname"])
+                            line_name = s.get_data()
+                        except Exception as e:
+                            _logger.error(e)
+                            line_name = l["poi_productname"]
+
+                        price_unit = float(l["poi_vendorprice"])
+                        order_line_dict = {
+                            "volusion_id": l["poi_id"],
+                            "product_id": product_id.id,
+                            "name": line_name,
+                            "product_qty": float(l["poi_quantity"]),
+                            "product_uom": product_id.uom_po_id.id,
+                            "price_unit": price_unit,
+                            "order_id": order_id.id,
+                            "date_planned": l["po_date"],
+                        }
+                        company.env["purchase.order.line"].create(order_line_dict)
+                    except Exception as e:
+                        _logger.error("Error while creating line for %s" % (l))
+                        _logger.error(e)
+                        continue
+
+                if company.purchase_ftp_type == "sftp":
                     try:
                         session.rename(
                             "%s%s" % (path, name.filename),

@@ -86,3 +86,45 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.order_default_credit_product",
         readonly=False,
     )
+    purchase_ftp_address = fields.Char(
+        string="Purchase FTP Address",
+        related="company_id.purchase_ftp_address",
+        readonly=False,
+    )
+    purchase_ftp_user = fields.Char(
+        string="Purchase FTP User",
+        related="company_id.purchase_ftp_user",
+        readonly=False,
+    )
+    purchase_ftp_password = fields.Char(
+        string="Purchase FTP Password",
+        related="company_id.purchase_ftp_password",
+        readonly=False,
+    )
+    purchase_ftp_port = fields.Char(
+        string="Purchase FTP Port",
+        related="company_id.purchase_ftp_port",
+        readonly=False,
+    )
+    purchase_ftp_folder = fields.Char(
+        string="New Purchase FTP Folder",
+        related="company_id.purchase_ftp_folder",
+        readonly=False,
+    )
+    purchase_done_ftp_folder = fields.Char(
+        string="Processed Purchase FTP Folder",
+        related="company_id.purchase_done_ftp_folder",
+        readonly=False,
+    )
+    purchase_ftp_type = fields.Selection(
+        [("ftp", "FTP"), ("sftp", "SFTP")],
+        string="Purchase FTP Type",
+        related="company_id.purchase_ftp_type",
+        readonly=False,
+    )
+    purchase_default_product = fields.Many2one(
+        "product.product",
+        string="Purchase Default Product",
+        related="company_id.purchase_default_product",
+        readonly=False,
+    )

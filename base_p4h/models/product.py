@@ -18,7 +18,7 @@ class ProductTemplate(models.Model):
         digits=dp.get_precision("Product Unit of Measure"),
     )
     ph_qty_available = fields.Float(
-        "Quantity On Hand",
+        "Quantity On Hand (incl. alt)",
         store=False,
         readonly=True,
         compute="_compute_ph_quantities",
@@ -26,7 +26,7 @@ class ProductTemplate(models.Model):
         digits=dp.get_precision("Product Unit of Measure"),
     )
     ph_virtual_available = fields.Float(
-        "Forecasted Quantity",
+        "Forecasted Quantity (incl. alt)",
         store=False,
         readonly=True,
         compute="_compute_ph_quantities",
@@ -34,7 +34,7 @@ class ProductTemplate(models.Model):
         digits=dp.get_precision("Product Unit of Measure"),
     )
     ph_incoming_qty = fields.Float(
-        "Incoming",
+        "Incoming (incl. alt)",
         store=False,
         readonly=True,
         compute="_compute_ph_quantities",
@@ -42,7 +42,7 @@ class ProductTemplate(models.Model):
         digits=dp.get_precision("Product Unit of Measure"),
     )
     ph_outgoing_qty = fields.Float(
-        "Outgoing",
+        "Outgoing (incl. alt)",
         store=False,
         readonly=True,
         compute="_compute_ph_quantities",

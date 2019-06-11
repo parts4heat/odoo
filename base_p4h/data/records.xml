@@ -6,4 +6,7 @@
         <field name="product_id" ref="delivery.product_product_delivery"/>
         <field name="fixed_price">0.00</field>
     </record>
+    <record forcecreate="True" id="unmapped_payment_term" model="account.payment.term">
+        <field name="name">Unmapped Payment Term</field>
+    </record>
 </odoo>

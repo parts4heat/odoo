@@ -10,6 +10,7 @@ from . import product
 from . import stock_move
 from . import stock_picking
 from . import stock_rule
+from . import purchase_order
 
 __all__ = [
     "res_partner",
@@ -22,4 +23,5 @@ __all__ = [
     "stock_move",
     "stock_picking",
     "stock_rule",
+    "purchase_order",
 ]

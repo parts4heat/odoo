@@ -107,6 +107,7 @@
       <field name="arch" type="xml">
         <data>
           <xpath expr="//field[@name='ref']" position="after">
+            <field name="vendor_id"/>
             <field name="customerid"/>
           </xpath>
           <xpath expr="//field[@name='mobile']/.." position="after">
@@ -361,6 +362,112 @@
                         </div>
                         <div class="content-group">
                             <field name="order_default_credit_product"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt16 o_settings_container" name="purchase_ftp_integration">
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_address"/>
+                        <div class="text-muted">
+                            Input the FTP address for the purchase
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_address"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_user"/>
+                        <div class="text-muted">
+                            Input the FTP user for the purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_user"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_password"/>
+                        <div class="text-muted">
+                            Input the FTP password for the purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_password" password="1"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_port"/>
+                        <div class="text-muted">
+                            Input the FTP port for the purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_port"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_folder"/>
+                        <div class="text-muted">
+                            Input the FTP folder for new purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_folder"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_done_ftp_folder"/>
+                        <div class="text-muted">
+                            Input the FTP folder for processed purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_done_ftp_folder"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_type"/>
+                        <div class="text-muted">
+                            Purchase FTP Type
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_type"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_default_product"/>
+                        <div class="text-muted">
+                            Product applied if product not mapped
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_default_product"/>
                         </div>
                     </div>
                 </div>
