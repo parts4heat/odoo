@@ -2,10 +2,11 @@
 Product Sequence
 ================
 
+This module creates a new field for P4H Part Numbers and automatically populates it.
+The P4H Part Number (p4h_code) is unique (SQL constrained), readonly via the UI and required.  Import scripts for MIF files will auto-populate this field. If left blank, the next number in sequence will be used, and the number will start with a P.
+
 This module was derived from the original OCA product_sequence module and modified for Parts4Heating.
 
-This module creates a new field for P4H Part Numbers and automatically populates it.
-The P4H Part Number (p4h_code) is unique (SQL constrained), readonly via the UI and required.
 
 Installation
 ============

@@ -11,6 +11,7 @@ import re
 import shutil
 import logging
 import ntpath
+from string import maketrans
 from pathlib2 import Path
 from datetime import datetime
 pp = pprint.PrettyPrinter(indent=4)
@@ -24,6 +25,9 @@ MAP_HEATER_CODE = {
     3: 'PH',
 }
 
+p4h_from="!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`{|}~"
+p4h_to="!z$%&'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxy"
+p4h_parts = maketrans(p4h_from,p4h_to)
 
 def setup_logger():
     logFormatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
@@ -278,6 +282,7 @@ class ImportMIF():
                     vals = {
                     'name':  model['name'] + ' - ' + model['description'] if model['name'] not in model['description'] else model['description'],
                     'default_code': model_code,
+                    'p4h_code': model_code.translate(p4h_parts)
                     'heater_code': self.heater_code,
                     'heater_sizes': self.heater_sizes,
                     'image': self.product_img_base64,
@@ -655,6 +660,7 @@ class ImportMIF():
                 # prepare final dict for product
                 res = dict(
                     default_code=part_no,
+                    p4h_code=part_no.translate(p4h_parts),
                     name=product_name,
                     image=self._find_product_image(part_no, self.mif_path),
                     #image=self.product_img_base64,

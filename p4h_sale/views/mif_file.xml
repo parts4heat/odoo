@@ -23,8 +23,8 @@
         <menuitem
             action="action_mif_file"
             id="menu_mif_file"
-            parent="stock.menu_stock_inventory_control"
-            sequence="190"/>
+            parent="menu_masterdata_sources"
+            sequence="20"/>
 
 </data>
 </odoo>

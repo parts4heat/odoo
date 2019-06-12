@@ -7,8 +7,8 @@ class ExplodedView(models.Model):
     _description = "Exploded View"
 
     binary = fields.Binary(string='Blob')
-    model_id = fields.Many2one('product.template')
+    file_name = fields.Char(string='File Name')
+    model_id = fields.Many2one('product.template',string='Model')
     name = fields.Char(string='Name')
-    file_name = fields.Char()
 
 

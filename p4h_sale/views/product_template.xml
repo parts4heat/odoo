@@ -43,55 +43,6 @@
             </field>
         </record>
 
-<!--
-        <record model="ir.ui.view" id="p4h_stock_view_picking_form">
-            <field name="name">p4h.stock.view_picking_form</field>
-            <field name="model">product.template</field>
-            <field name="inherit_id" ref="stock.view_picking_form" />
-            <field name="arch" type="xml">
-              <data>
-
-<xpath expr="//tree/field[@name='location_id']" position="before">
-  <field name="description_pickingin"/>
-</xpath>
-
-              </data>
-            </field>
-         </record>
--->
-
-<!--
-
-        <record model="ir.ui.view" id="p4h_product_supplierinfo_form_view_inherit">
-            <field name="name">p4h.product.supplierinfo.form.view.inherit</field>
-            <field name="model">product.template</field>
-            <field name="inherit_id" ref="product.product_supplierinfo_form_view" />
-            <field name="arch" type="xml">
-              <data>
-
-<label for="min_qty" position="after">
-  <label for="max_qty" string="Maximum Quantity"/>
-  <div>
-    <field name="max_qty" class="oe_inline"/>
-    <field name="product_uom" class="oe_inline" groups="product.group_uom"/>
-  </div>
-</label>
-
-<xpath expr="//group" position="after">
-  <group>
-    <group string="Metadata">
-      <field name="__last_update"/>
-      <field name="write_uid"/>
-    </group>
-  </group>
-  
-</xpath>
-
-             </data>
-            </field>
-         </record>
-
--->
 
         <record model="ir.ui.view" id="p4h_product_supplier_form_view_inherit">
             <field name="name">p4h.product.supplier.form.view.inherit</field>
@@ -188,7 +139,7 @@
             <field name="dependency1"/>
             <field name="dependency2"/>
             <field name="dependency3"/>
-            <field name="qty_available_not_res"/>
+            <!-- GFP --> <field name="qty_available_not_res"/>
           </tree>
           <form>
             <group>
@@ -208,7 +159,7 @@
             <field name="dependency1"/>
             <field name="dependency2"/>
             <field name="dependency3"/>
-            <field name="qty_available_not_res"/>
+            <!-- GFP --><field name="qty_available_not_res"/>
             </group>
           </form>
         </field>
