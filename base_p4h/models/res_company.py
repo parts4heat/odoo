@@ -102,6 +102,8 @@ class ResCompany(models.Model):
                             _logger.info("Creating image for %s" % (file_name))
                             data = sftp.open(file_name).read()
                             data = base64.b64encode(data)
+                            if not prod.image:
+                                prod.image = data
                             self.env["product.image"].create(
                                 {
                                     "image": data,
