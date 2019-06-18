@@ -1,6 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
   <data>
+    <record model="ir.ui.view" id="view_picking_form_mod">
+      <field name="name">x_gfp.stock.picking.form.mod</field>
+      <field name="model">stock.picking</field>
+      <field name="inherit_id" ref="stock.view_picking_form"/>
+      <field name="priority">98</field>
+      <field name="arch" type="xml">
+        <data>
+          <xpath expr="//field[@name='move_line_ids_without_package']//tree//field[@name='product_id']" position="after">
+            <field name="storage_location_id"
+            attrs="{
+                'column_invisible': [('parent.picking_type_code', '=','outgoing')],
+            }"/>
+          </xpath>
+          <xpath expr="//field[@name='move_ids_without_package']//tree//field[@name='product_id']" position="after">
+            <field name="storage_location_id"
+            attrs="{
+                'column_invisible': [('parent.picking_type_code', '=','outgoing')],
+            }"/>
+          </xpath>
+        </data>
+      </field>
+    </record>
+    <record model="ir.ui.view" id="mrp_bom_form_view_mod">
+      <field name="name">x_gfp.mrp.bom.form.mod</field>
+      <field name="model">mrp.bom</field>
+      <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+      <field name="priority">98</field>
+      <field name="arch" type="xml">
+        <data>
+          <xpath expr="//field[@name='bom_line_ids']//tree//field[@name='product_id']" position="after">
+            <field name="standard_price"/>
+            <field name="qty_available"/>
+          </xpath>
+        </data>
+      </field>
+    </record>
+    <record model="ir.ui.view" id="product_template_form_view">
+      <field name="name">x_gfp.product.template.form.mod</field>
+      <field name="model">product.template</field>
+      <field name="inherit_id" ref="product.product_template_form_view"/>
+      <field name="priority">98</field>
+      <field name="arch" type="xml">
+        <data>
+        <xpath expr="//header" position="after">
+            <field name="bom_count" invisible="1"/>
+            <div align="center" style="background-color:#FFA500;" attrs="{'invisible':[('bom_count','=',0)]}">
+              <div>
+                <div>
+                <strong>NOTE: This part can be manufactured in-house</strong>
+                </div>
+              </div>
+            </div>
+          </xpath>
+          <xpath expr="//group[@name='group_lots_and_weight']/label" position="before">
+            <field name="storage_location_id"/>
+          </xpath>
+        </data>
+      </field>
+    </record>
+    <record model="ir.ui.view" id="product_template_form_view_procurement_button_mod">
+      <field name="name">x_gfp.product.template.procurement.form.mod</field>
+      <field name="model">product.template</field>
+      <field name="inherit_id" ref="stock.product_template_form_view_procurement_button"/>
+      <field name="priority">98</field>
+      <field name="arch" type="xml">
+        <data>
+          <xpath expr="//field[@name='qty_available']" position="replace">
+            <field name="qty_available" invisible="1"/>
+            <field name="ph_qty_available" widget="statinfo" nolabel="1" class="mr4"/>
+          </xpath>
+          <xpath expr="//field[@name='virtual_available']" position="replace">
+            <field name="virtual_available" invisible="1"/>
+            <field name="ph_virtual_available" widget="statinfo" nolabel="1" class="mr4"/>
+          </xpath>
+          <xpath expr="//field[@name='qty_available_not_res']/../../.." position="attributes">
+            <attribute name="name">action_open_quants_unreserved</attribute>
+          </xpath>
+          <xpath expr="//field[@name='virtual_available']/../../.." position="attributes">
+            <attribute name="name">action_open_ph_forecast</attribute>
+            <attribute name="type">object</attribute>
+          </xpath>
+        </data>
+      </field>
+    </record>
     <record model="ir.ui.view" id="view_order_form_mod">
       <field name="name">x_gfp.sale.order.form.mod</field>
       <field name="model">sale.order</field>
@@ -23,6 +107,7 @@
       <field name="arch" type="xml">
         <data>
           <xpath expr="//field[@name='ref']" position="after">
+            <field name="vendor_id"/>
             <field name="customerid"/>
           </xpath>
           <xpath expr="//field[@name='mobile']/.." position="after">
@@ -126,6 +211,19 @@
                     <div class="o_setting_left_pane">
                     </div>
                     <div class="o_setting_right_pane">
+                        <label for="image_ftp_type"/>
+                        <div class="text-muted">
+                            Image FTP Type
+                        </div>
+                        <div class="content-group">
+                            <field name="image_ftp_type"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
                         <label for="image_ftp_last_update"/>
                         <div class="text-muted">
                             Last time the image creation cron ran
@@ -219,6 +317,19 @@
                     <div class="o_setting_left_pane">
                     </div>
                     <div class="o_setting_right_pane">
+                        <label for="order_ftp_type"/>
+                        <div class="text-muted">
+                            Order FTP Type
+                        </div>
+                        <div class="content-group">
+                            <field name="order_ftp_type"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
                         <label for="order_default_team"/>
                         <div class="text-muted">
                             Sales team applied to all new orders
@@ -238,6 +349,125 @@
                         </div>
                         <div class="content-group">
                             <field name="order_default_product"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="order_default_credit_product"/>
+                        <div class="text-muted">
+                            Product applied if its credit/void/decline/failed
+                        </div>
+                        <div class="content-group">
+                            <field name="order_default_credit_product"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt16 o_settings_container" name="purchase_ftp_integration">
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_address"/>
+                        <div class="text-muted">
+                            Input the FTP address for the purchase
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_address"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_user"/>
+                        <div class="text-muted">
+                            Input the FTP user for the purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_user"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_password"/>
+                        <div class="text-muted">
+                            Input the FTP password for the purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_password" password="1"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_port"/>
+                        <div class="text-muted">
+                            Input the FTP port for the purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_port"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_folder"/>
+                        <div class="text-muted">
+                            Input the FTP folder for new purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_folder"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_done_ftp_folder"/>
+                        <div class="text-muted">
+                            Input the FTP folder for processed purchases
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_done_ftp_folder"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_ftp_type"/>
+                        <div class="text-muted">
+                            Purchase FTP Type
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_ftp_type"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="purchase_default_product"/>
+                        <div class="text-muted">
+                            Product applied if product not mapped
+                        </div>
+                        <div class="content-group">
+                            <field name="purchase_default_product"/>
                         </div>
                     </div>
                 </div>

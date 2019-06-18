@@ -6,5 +6,6 @@ from odoo import fields, models
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
-    customerid = fields.Char(string="Volusion Customer ID")
+    vendor_id = fields.Char(string="Procurement Vendor")
+    customerid = fields.Char(string="Customer ID")
     fax = fields.Char(string="Fax")
