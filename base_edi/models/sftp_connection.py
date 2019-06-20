@@ -27,7 +27,6 @@ class SFTPConnection(FTPConnection):
             gss_kex=False,
         )
         self._conn = paramiko.SFTPClient.from_transport(transport)
-
         if self._repin:
             self.cd(self._repin)
 

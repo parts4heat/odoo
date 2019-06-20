@@ -24,7 +24,7 @@ class SyncDocumentType(models.Model):
         ('in-mv', 'Import Documents and Move files'),
         ('out', 'Export Documents'),
     ], string='Operation Type', required=True, copy=False)
-    doc_code = fields.Selection(selection=[('none', 'No Document')], string='Document Code (EDI)',
+    doc_code = fields.Selection(selection=[('none', 'No Document'), ('import_product', 'Import Product')], string='Document Code (EDI)',
                                 required=True, copy=False)
 
     def _do_none(self, conn, sync_action_id, values):
@@ -191,6 +191,7 @@ class EDISyncAction(models.Model):
                 doc_action = sync_action.doc_type_id.doc_code
                 sync_method = '_do_%s' % doc_action
                 conn = sync_action.config_id._get_provider_connection()
+                conn._connect()
                 if hasattr(sync_action.doc_type_id, sync_method) and conn:
                     _logger.info('running method `%s` for the synchronization action: '
                                  '%d.' % (sync_method, sync_action.id))
