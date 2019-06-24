@@ -19,14 +19,12 @@ class ProcurementGroup(models.Model):
         GFP: Inheriting base function so that it selects the cheapest of the alternates on the procurement.
         More specifically, this is aimed at employing the reordering rules
         """
-        print(product_id)
-        alternates = product_id.product_tmpl_id.alternate_ids.mapped(
-            "product_alt_id"
-        ).mapped("product_variant_ids")
-        alternates |= product_id
-        print(alternates)
-        product_id = alternates.sorted(key=lambda x: x.standard_price)[0]
-        print(product_id)
+        if not values["sale_line_id"]:
+            alternates = product_id.product_tmpl_id.alternate_ids.mapped(
+                "product_alt_id"
+            ).mapped("product_variant_ids")
+            alternates |= product_id
+            product_id = alternates.sorted(key=lambda x: x.standard_price)[0]
         values.setdefault(
             "company_id",
             self.env["res.company"]._company_default_get("procurement.group"),

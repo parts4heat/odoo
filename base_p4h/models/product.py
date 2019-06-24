@@ -2,6 +2,7 @@
 
 from odoo import api, fields, models
 from odoo.addons import decimal_precision as dp
+from odoo.tools import float_compare, UserError
 
 
 class ProductTemplate(models.Model):
@@ -174,3 +175,50 @@ class ProductProduct(models.Model):
         store=True,
         readonly=False,
     )
+
+    def _alternate_check_availability(self, line, single=False):
+        """
+        GFP: Checks to see if there are any alternatives available
+        if the product itself is not available.
+        """
+        if self.type == "product":
+            precision = self.env["decimal.precision"].precision_get(
+                "Product Unit of Measure"
+            )
+            product = self.with_context(
+                warehouse=line.order_id.warehouse_id.id,
+                lang=line.order_id.partner_id.lang or self.env.user.lang or "en_US",
+            )
+            product_qty = line.product_uom._compute_quantity(
+                line.product_uom_qty, self.uom_id
+            )
+            if (
+                float_compare(
+                    product.virtual_available, product_qty, precision_digits=precision
+                )
+                == -1
+            ):
+                is_available = line._check_routing()
+                if is_available:
+                    return self
+                if (
+                    not is_available
+                    and self.procurement_method == "list"
+                    and not single
+                ):
+                    if not self.alternate_ids:
+                        return UserError(
+                            "%s's configuration requires alternates configured."
+                        )
+                    for alternate in self.alternate_ids.sorted(
+                        key=lambda x: x.product_alt_id.product_variant_id.standard_price
+                    ):
+                        alt_prod = alternate.product_alt_id.product_variant_id
+                        returned_prod = alt_prod._alternate_check_availability(
+                            line, single=True
+                        )
+                        if returned_prod:
+                            return returned_prod
+            else:
+                return self
+        return False
