@@ -4,7 +4,10 @@ import os
 import pprint
 import logging
 import ntpath
+import re
 import base64
+import itertools
+import copy
 import sys
 import xlrd
 from datetime import datetime
@@ -56,6 +59,7 @@ class SyncDocumentType(models.Model):
             if file.endswith(".xlsx"):
                 self.xlsx_file_path = os.path.join(sync_action_id.dir_path + directory, file)
                 self.product_import_file = conn.download_file(self.xlsx_file_path)
+                self.miff_file = file
             elif file == directory + ".pdf":
                 file_path = os.path.join(sync_action_id.dir_path + directory, 'P-OB-VerB-PN272437.xlsx')
                 #pdf = conn.download_file(file_path)
@@ -115,20 +119,19 @@ class SyncDocumentType(models.Model):
                     break
             # print used_in_row
             heater_codes = self.explode_heater_code(heater_codes, used_in_row)
-            # attribute_ids = self._create_attribute()
-            # attribute_data = self._process_attributes(attributes, attribute_ids)
-            # models_data = self._process_models(heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index)
+            attribute_ids = self._create_attribute()
+            attribute_data = self._process_attributes(attributes, attribute_ids)
+            models_data = self._process_models(heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index)
             # if not self.skip_import:
             #     self._import_products(row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data, models_data)
-
         except Exception as e:
             _logger.error(e)
 
     def _do_import_product(self, conn, sync_action_id, values):
         # change to directory path
         conn.cd(sync_action_id.dir_path)
-
-        for directory in conn.ls():
+        directories = conn.ls()
+        for directory in directories:
             try:
                 self.initialize_mif_variable()
                 self.extract_files_from_subdirectory(conn, sync_action_id, directory)
@@ -253,6 +256,230 @@ class SyncDocumentType(models.Model):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             _logger.error('\n\n\nFAILURE on ' + ntpath.basename(self.xlsx_file_path) + '\nTYPE: ' + str(exc_type) + '\nVALUE: ' + str(exc_obj) + '\nLINE: ' + str(exc_tb.tb_lineno) + '\n\n\n')
         return heater_codes
+
+    def _create_attribute(self):
+        try:
+            # TODO: move this to DATA File
+            attributes = ['FUEL', 'IGNITION TYPE', 'HEAT EXCHANGER', 'CONSTRUCTION', 'ALTITUDE', 'STAGES', 'INDOOR / OUTDOOR', 'LOW NOX', 'PUMP TYPE', 'PRV TYPE', 'HEADER TYPE', 'CONTROL']
+            res = {}
+            for attr in attributes:
+                self.env.cr.execute("select id from product_attribute where name=%s", (attr, ))
+                attribute_id = self.env.cr.fetchone()
+                attribute_id = attribute_id and attribute_id[0] or False
+                # TODO: once it move no need of this
+                if not attribute_id:
+                    self.env.cr.execute('INSERT into product_attribute ("name", "create_variant", "type") VALUES (%s, False, %s) RETURNING id', (attr, 'radio'))
+                    attribute_id = self.env.cr.fetchone()[0]
+                res[attr] = attribute_id
+        except Exception:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            _logger.error('\n\n\nFAILURE on ' + ntpath.basename(self.xlsx_file_path) + '\nTYPE: ' + str(exc_type) + '\nVALUE: ' + str(exc_obj) + '\nLINE: ' + str(exc_tb.tb_lineno) + '\n\n\n')
+        return res
+
+    def _process_attributes(self, attributes, attribute_ids):
+        try:
+            attributes_data = {}
+            if attributes.get(26):
+                """
+                Most manufacturers use N for natural gas and P for propane.
+                But a couple (Lochinvar being the most notable one) use L for propane.
+                For all intents and purposes, L = P.  If a customer selects Propane from the attributes list, L or P are equivalent
+                """
+                is_notable_lochinvar = False
+                if 'L' in attributes[26]:
+                    is_notable_lochinvar = True
+                    attributes[26] = ['P' if x == 'L' else x for x in attributes[26]]
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['FUEL'], attributes.get(26))
+                if is_notable_lochinvar:
+                    attribute_vals['L'] = attribute_vals.pop('P')
+                attributes_data[26] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(27):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['IGNITION TYPE'], attributes.get(27))
+                attributes_data[27] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(28):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['HEAT EXCHANGER'], attributes.get(28))
+                attributes_data[28] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(29):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['CONSTRUCTION'], attributes.get(29))
+                attributes_data[29] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(30):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['ALTITUDE'], attributes.get(30))
+                attributes_data[30] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(31):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['STAGES'], attributes.get(31))
+                attributes_data[31] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(33):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['INDOOR / OUTDOOR'], attributes.get(33))
+                attributes_data[33] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(34):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['LOW NOX'], attributes.get(34))
+                attributes_data[34] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(37):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['PUMP TYPE'], attributes.get(37))
+                attributes_data[37] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(38):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['PRV TYPE'], attributes.get(38))
+                attributes_data[38] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+            if attributes.get(41):
+                attribute_vals, attribute_id = self._create_attribute_value(attribute_ids['HEADER TYPE'], attributes.get(41))
+                attributes_data[41] = {'attribute_id': attribute_id, 'values': attribute_vals}
+
+        except Exception:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            _logger.error('\n\n\nFAILURE on ' + ntpath.basename(self.xlsx_file_path) + '\nTYPE: ' + str(exc_type) + '\nVALUE: ' + str(exc_obj) + '\nLINE: ' + str(exc_tb.tb_lineno) + '\n\n\n')
+        return attributes_data
+
+    def _create_attribute_value(self, attribute_id, values):
+        try:
+            # TODO - late we used DB ID
+            attribute_values = {}
+            if attribute_id:
+                for value in values:
+                    temp = value
+                    if temp == '':
+                        temp = 'N/A'
+                    self.env.cr.execute("select id from product_attribute_value where name=%s and attribute_id=%s", (value, attribute_id))
+                    value_id = self.env.cr.fetchone()
+                    value_id = value_id and value_id[0] or False
+                    if not value_id:
+                        self.env.cr.execute('INSERT into product_attribute_value ("name", "attribute_id", "source_doc") VALUES (%s, %d, %s) RETURNING id', (temp, attribute_id, self.miff_file))
+                        value_id = self.env.cr.fetchone()[0]
+                    attribute_values[value] = value_id
+        except Exception:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            _logger.error('\n\n\nFAILURE on ' + ntpath.basename(self.xlsx_file_path) + '\nTYPE: ' + str(exc_type) + '\nVALUE: ' + str(exc_obj) + '\nLINE: ' + str(exc_tb.tb_lineno) + '\n\n\n')
+        return attribute_values, attribute_id
+
+    def _process_models(self, heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index):
+        try:
+            new_heater_codes = copy.deepcopy(heater_codes)  # deep copy
+            models = []
+            for heater_code in new_heater_codes:
+                code = new_heater_codes[heater_code]
+                for idx, c in enumerate(code['code']):
+                    if not isinstance(c, list):
+                        code['code'][idx] = [''.join(c1 for c1 in c)]
+                    elif isinstance(c, list) and all(str(x) and str(x) in used_in_row for x in c):
+                        code['code'][idx] = ['@@' + str(r) + '@@' for r in used_in_row if r]
+                    elif isinstance(c, list):
+                        for i, fields in enumerate(application_fields):
+                            if fields == c:
+                                code['code'][idx] = ['{' + str(x) + '(' + str(fields_index[i]) + ')' + '}' for x in c]
+                                break
+                codes = code['code'][:]
+                combinations = []
+                if ['*'] in codes:
+                    code['code'] = [item for item in code['code'] if item != ['*']]
+                    combinations += self.prepare_additional_model_combination(codes)
+                combinations += self._get_possible_combination(code['code'])
+                for idx, comb in enumerate(combinations):
+                    models.append({
+                        'name': code['name'],
+                        'description': code['description'],
+                        #'index_categories': code['index_categories'],
+                        'mfg_id': code['mfg_id'],
+                        'code': ''.join(str(i) for i in comb)})
+        except Exception:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            _logger.error('\n\n\nFAILURE on ' + ntpath.basename(self.xlsx_file_path) + '\nTYPE: ' + str(exc_type) + '\nVALUE: ' + str(exc_obj) + '\nLINE: ' + str(exc_tb.tb_lineno) + '\n\n\n')
+        return self._create_models(models, attribute_data, used_in_row_index)
+
+    def _get_possible_combination(self, new_heater_codes):
+        try:
+            combinations = []
+            items = itertools.product(*new_heater_codes)
+            for i in items:
+                combinations.append(i)
+        except Exception:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            _logger.error('\n\n\nFAILURE on ' + ntpath.basename(self.prodcut_import_file) + '\nTYPE: ' + str(exc_type) + '\nVALUE: ' + str(exc_obj) + '\nLINE: ' + str(exc_tb.tb_lineno) + '\n\n\n')
+        return combinations
+
+    def prepare_additional_model_combination(self, codes):
+        model_codes = self.prepare_optional_model_codes_togenerate_combination(codes)
+        combinations = []
+        for mc in model_codes:
+            combinations += self._get_possible_combination(mc)
+        return combinations
+
+    def _create_models(self, models, attribute_data, used_in_row_index):
+        try:
+            # we can take res_id from the ir model data using xml id
+            models_data = {}
+            for model in models:
+                # code look like 'BWC@@151@@E{L(26)}{V(38)}{G(37)}1P{9(30)}{U(29)}'
+                # first remove field index
+                model_code = re.sub("[\(\[].*?[\)\]]", "", model['code'])
+                # second remove {}
+                model_code = re.sub('{|}', '', model_code).rstrip()
+
+                # get model number
+                model_number = re.search(r'\@\@(.*?)\@\@', model_code)
+                model_number = model_number and model_number.group(1)
+
+                # remove model number speprator (**)
+                model_code = model_code.replace('@@', '')
+                model['code'] = model['code'].replace('@@', '')
+                # map category
+                category_id = False
+                for k, v in used_in_row_index.iteritems():
+                    if v and v == model_number:
+                        category_id = model['index_categories'][k]
+                        break
+                if not category_id:
+                    category_input = False
+                else:
+                    category_input = [(4, category_id)]
+                self.env.cr.execute("select id from product_template where default_code=%s", (model_code,))
+                model_id = self.env.cr.fetchone()
+                model_id = model_id and model_id[0] or False
+                if not model_id:
+                    manufacturer_id = False
+                    if model['mfg_id']:
+                        self.env.cr.execute("select id from res_partner where mfg_lookup=%s", (model['mfg_id'],))
+                        manufacturer_id = self.env.cr.fetchone()
+                        manufacturer_id = manufacturer_id and manufacturer_id[0] or False
+                    vals = {
+                        'name':  model['name'] + ' - ' + model['description'] if model['name'] not in model['description'] else model['description'],
+                        'default_code': model_code,
+                        'heater_code': self.heater_code,
+                        'heater_sizes': self.heater_sizes,
+                        'image': self.product_img_base64,
+                        'public_categ_ids': category_input,
+                        'product_class': 'm',
+                        'description': model_code.replace('-', '').replace(' ', ''),
+                        'type': 'consu',
+                        'website_published': True,
+                        'mfg_id': manufacturer_id,
+                        'parts_list': self.parts_list_base64,
+                        'manual': self.maual_base64,
+                        'manual_filename': self.manual_filename,
+                        'source_doc':  self.miff_file,
+                        'dependency_1_label': self.dependancy_label_1,
+                        'dependency_2_label': self.dependancy_label_2,
+                        'dependency_3_label': self.dependancy_label_3,
+                        'exploded_views': self.product_extra_img_base64 + self.product_html_base64,
+                        'attribute_line_ids': self._prepare_model_attribute_lines(model['code'], attribute_data, 'attribute_id', 'value_ids'),
+                    }
+                    # TODO prepare model in such way so that it can be used below while creating parts
+                    # TODO: use sql query instead; also api.multi???
+                    model_id = self.env['product.template'].create(vals).id
+                    #model_id = object_proxy.execute(db_name, uid, password, "product.template", "create", vals)
+                models_data[model_code] = {'code': model['code'], 'db_id': model_id}
+        except Exception:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            _logger.error('\n\n\nFAILURE on ' + ntpath.basename(self.prodcut_import_file) + '\nTYPE: ' + str(exc_type) + '\nVALUE: ' + str(exc_obj) + '\nLINE: ' + str(exc_tb.tb_lineno) + '\n\n\n')
+        return models_data
 
     # ===================================================
     # Helper MEthods
