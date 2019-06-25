@@ -11,7 +11,7 @@ Allows you to configure edi document exchnage configurations
 ==============================================================
 You can your own edi xml export and import via ftp.
 """,
-    'depends': ['mail'],
+    'depends': ['mail', 'p4h_sale'],
     'data': [
         'security/base_edi_security.xml',
         'security/ir.model.access.csv',

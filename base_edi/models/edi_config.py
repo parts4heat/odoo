@@ -145,6 +145,7 @@ class EDISyncAction(models.Model):
                                   help="A Python dictionary that will be evaluated to provide "
                                   "default values when creating new records for this alias."
                                   "or can be used to pass defaults for exporting files")
+    mif_ids = fields.One2many('mif.file', 'sync_action_id', string='MIF Files')
 
     @api.one
     @api.constrains('action_defaults')

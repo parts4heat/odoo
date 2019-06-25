@@ -33,8 +33,8 @@ class SFTPConnection(FTPConnection):
     def _disconnect(self):
         self._conn.close()
 
-    def ls(self):
-        return self._conn.listdir()
+    def ls(self, path='.'):
+        return self._conn.listdir(path)
 
     def cd(self, dirname):
         self._conn.chdir(path=dirname)
