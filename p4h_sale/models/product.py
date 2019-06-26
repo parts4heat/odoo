@@ -104,6 +104,7 @@ class ProductTemplate(models.Model):
     source_doc = fields.Char('MIF Source')
     heater_code = fields.Char('Heater Code')
     heater_sizes = fields.Char('Heater Sizes')
+    mif_id = fields.Many2one('mif.file', string='Mif File')
 
     product_class = fields.Selection(string='Class',selection=[('m', 'Model'),('p','Part'),('s','Standard')], default='s')
     procurement_method = fields.Selection([

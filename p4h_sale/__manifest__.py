@@ -24,6 +24,10 @@ score - support automatic validation or orders
         'views/web.xml',
         'views/sale_order.xml',
         'views/product.xml',
+        'views/mif_file.xml',
+        'views/model_parts.xml',
+        'views/product_template.xml',
+        'data/data.xml',
     ],
     'demo': [
     ],

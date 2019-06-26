@@ -13,8 +13,8 @@ import xlrd
 from datetime import datetime
 import traceback
 
-from odoo import fields, models, _
-
+from odoo import models, _
+from odoo import fields as odoo_fields
 _logger = logging.getLogger(__name__)
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -28,22 +28,38 @@ MAP_HEATER_CODE = {
 class MifFile(models.Model):
     _inherit = 'mif.file'
 
-    log_note = fields.Text()
-    sync_action_id = fields.Many2one('edi.sync.action', string='Source Action')
-    mif_directory = fields.Char()
-    state = fields.Selection([('pending', 'Pending'), ('done', 'Done'), ('error', 'Error')], default='pending')
-    manufacturer = fields.Char()
+    sync_action_id = odoo_fields.Many2one('edi.sync.action', string='Source Action')
 
 
 class SyncDocumentType(models.Model):
 
     _inherit = 'sync.document.type'
 
-    doc_code = fields.Selection(selection_add=[
+    doc_code = odoo_fields.Selection(selection_add=[
         ('import_product', 'Import Product'),
     ])
 
-    def initialize_mif_variable(self):
+    def _do_import_product(self, conn, sync_action_id, values):
+        self._synch_mif(conn, sync_action_id)
+        MifFile = self.env['mif.file']
+        # import only 1 mif at a time
+        MIF = MifFile.search([('sync_action_id', '=', sync_action_id.id), ('state', '=', 'pending')], limit=1)
+        if MIF:
+            try:
+                self._initialize_mif_variable()
+                self._delete_prior_data(MIF)
+                self._extract_files_from_subdirectory(conn, sync_action_id, MIF.mif_directory)
+                if self.product_import_file:
+                    self._import_products(conn, sync_action_id, MIF.id)
+                else:
+                    self.state = 'error'
+                    self.log_note += '\n\n No Mif file found -> %s' % (self.xlsx_file_path)
+            except Exception:
+                self.LogErrorMessage()
+
+            MIF.write({'state': self.state, 'log_note': self.log_note})
+
+    def _initialize_mif_variable(self):
         self.product_import_file = ''
         self.xlsx_file_path = ''
         self.product_img_base64 = False
@@ -63,7 +79,7 @@ class SyncDocumentType(models.Model):
         self.log_note = ''
         self.state = 'pending'
 
-    def extract_files_from_subdirectory(self, conn, sync_action_id, directory):
+    def _extract_files_from_subdirectory(self, conn, sync_action_id, directory):
         self.mif_path = sync_action_id.dir_path
         file_path = os.path.join(sync_action_id.dir_path, directory)
         conn.cd(file_path)
@@ -77,9 +93,7 @@ class SyncDocumentType(models.Model):
                 file_path = os.path.join(sync_action_id.dir_path + directory, 'P-OB-VerB-PN272437.xlsx')
             # pdf = conn.download_file(file_path)
 
-    def _import_products(self, conn, sync_action_id):
-        logging_time_start = datetime.now()
-        _logger.info(datetime.now().strftime("%a, %d %B %Y %H:%M:%S"))
+    def _import_products(self, conn, sync_action_id, mif_id):
         workbook = xlrd.open_workbook(file_contents=self.product_import_file)
         worksheet = workbook.sheet_by_index(0)
         row = 0
@@ -125,15 +139,16 @@ class SyncDocumentType(models.Model):
                     used_in_row.append(v)
                     if v:
                         used_in_row_index[col] = str(v)
-                application_fields, fields_index, attributes = self.prepare_applications_fields(r, worksheet)
+                application_fields, fields_index, attributes = self._prepare_applications_fields(r, worksheet)
                 self._set_dependency_label(worksheet, r)
                 break
-        heater_codes = self.explode_heater_code(heater_codes, used_in_row)
-        attribute_ids = self._create_attribute()
+        heater_codes = self._explode_heater_code(heater_codes, used_in_row)
+        attribute_ids = self._get_attributes()
         attribute_data = self._process_attributes(attributes, attribute_ids)
-        models_data = self._process_models(heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index)
+        models_data = self._process_models(heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index, mif_id)
         if not self.skip_import:
-            parts = self._import_parts(conn, row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data, models_data)
+            parts = self._import_parts(
+                conn, row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data, models_data, mif_id)
             self.log_note += '\n\n Success fully imported %s parts' % (parts)
             self.state = 'done'
 
@@ -143,29 +158,10 @@ class SyncDocumentType(models.Model):
         directories = conn.ls()
         all_mifdirectories = MifFile.search([('sync_action_id', '=', sync_action_id.id)]).mapped('mif_directory')
         for directory in filter(lambda d: d not in all_mifdirectories, directories):
-            MifFile.create({'name': directory, 'mif_directory': directory, 'sync_action_id': sync_action_id.id})
+            MifFile.with_context(prefetch_fields=False, mail_notrack=True).create({'name': directory, 'mif_directory': directory, 'sync_action_id': sync_action_id.id})
         self.env.cr.commit()
 
-    def _do_import_product(self, conn, sync_action_id, values):
-        self._synch_mif(conn, sync_action_id)
-        MifFile = self.env['mif.file']
-        # import only 1 mif at a time
-        MIF = MifFile.search([('sync_action_id', '=', sync_action_id.id), ('state', '=', 'pending')], limit=1)
-        if MIF:
-            try:
-                self.initialize_mif_variable()
-                self.extract_files_from_subdirectory(conn, sync_action_id, MIF.mif_directory)
-                if self.product_import_file:
-                    self._import_products(conn, sync_action_id)
-                else:
-                    self.state = 'error'
-                    self.log_note += '\n\n No Mif file found -> %s' % (self.xlsx_file_path)
-            except Exception:
-                self.LogErrorMessage()
-
-            MIF.write({'state': self.state, 'log_note': self.log_note})
-
-    def prepare_applications_fields(self, row, worksheet):
+    def _prepare_applications_fields(self, row, worksheet):
         fields = []
         fields_index = []
         attributes = {}
@@ -204,7 +200,7 @@ class SyncDocumentType(models.Model):
             if self.dependancy_label_1.find("["):
                 self.dependancy_label_3 = self.dependancy_label_3[:self.dependancy_label_3.find("[")].strip(" ")
 
-    def explode_heater_code(self, heater_codes, used_in_row):
+    def _explode_heater_code(self, heater_codes, used_in_row):
         """
             this function will explode the heater code
             # HTR[150-400]CH[N,P]M[ASME,ASHI,HALT,CAN,CANH]
@@ -264,19 +260,10 @@ class SyncDocumentType(models.Model):
             heater_codes[code]['code'] = a
         return heater_codes
 
-    def _create_attribute(self):
-        # TODO: move this to DATA File
+    def _get_attributes(self):
         attributes = ['FUEL', 'IGNITION TYPE', 'HEAT EXCHANGER', 'CONSTRUCTION', 'ALTITUDE', 'STAGES', 'INDOOR / OUTDOOR', 'LOW NOX', 'PUMP TYPE', 'PRV TYPE', 'HEADER TYPE', 'CONTROL']
-        res = {}
-        for attr in attributes:
-            self.env.cr.execute("select id from product_attribute where name=%s", (attr, ))
-            attribute_id = self.env.cr.fetchone()
-            attribute_id = attribute_id and attribute_id[0] or False
-            # TODO: once it move no need of this
-            if not attribute_id:
-                self.env.cr.execute('INSERT into product_attribute ("name", "create_variant", "type") VALUES (%s, False, %s) RETURNING id', (attr, 'radio'))
-                attribute_id = self.env.cr.fetchone()[0]
-            res[attr] = attribute_id
+        attribute_data = self.env['product.attribute'].search_read([('name', 'in', attributes)], ['name'])
+        res = {attr['name']: attr['id'] for attr in attribute_data}
         return res
 
     def _process_attributes(self, attributes, attribute_ids):
@@ -355,7 +342,7 @@ class SyncDocumentType(models.Model):
                 attribute_values[value] = value_id
         return attribute_values, attribute_id
 
-    def _process_models(self, heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index):
+    def _process_models(self, heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index, mif_id):
         new_heater_codes = copy.deepcopy(heater_codes)  # deep copy
         models = []
         for heater_code in new_heater_codes:
@@ -374,7 +361,7 @@ class SyncDocumentType(models.Model):
             combinations = []
             if ['*'] in codes:
                 code['code'] = [item for item in code['code'] if item != ['*']]
-                combinations += self.prepare_additional_model_combination(codes)
+                combinations += self._prepare_additional_model_combination(codes)
             combinations += self._get_possible_combination(code['code'])
             for idx, comb in enumerate(combinations):
                 models.append({
@@ -383,7 +370,7 @@ class SyncDocumentType(models.Model):
                     #'index_categories': code['index_categories'],
                     'mfg_id': code['mfg_id'],
                     'code': ''.join(str(i) for i in comb)})
-        return self._create_models(models, attribute_data, used_in_row_index)
+        return self._create_models(models, attribute_data, used_in_row_index, mif_id)
 
     def _get_possible_combination(self, new_heater_codes):
         combinations = []
@@ -392,14 +379,14 @@ class SyncDocumentType(models.Model):
             combinations.append(i)
         return combinations
 
-    def prepare_additional_model_combination(self, codes):
+    def _prepare_additional_model_combination(self, codes):
         model_codes = self.prepare_optional_model_codes_togenerate_combination(codes)
         combinations = []
         for mc in model_codes:
             combinations += self._get_possible_combination(mc)
         return combinations
 
-    def _create_models(self, models, attribute_data, used_in_row_index):
+    def _create_models(self, models, attribute_data, used_in_row_index, mif_id):
         ResPartner = self.env['res.partner']
         ProductTemplate = self.env['product.template']
         # we can take res_id from the ir model data using xml id
@@ -436,6 +423,7 @@ class SyncDocumentType(models.Model):
                 vals = {
                     'name':  model['name'] + ' - ' + model['description'] if model['name'] not in model['description'] else model['description'],
                     'default_code': model_code,
+                    'mif_id': mif_id,
                     'heater_code': self.heater_code,
                     'heater_sizes': self.heater_sizes,
                     'image': self.product_img_base64,
@@ -457,7 +445,7 @@ class SyncDocumentType(models.Model):
                 }
                 # TODO prepare model in such way so that it can be used below while creating parts
                 # TODO: use sql query instead; also api.multi???
-                model_id = ProductTemplate.create(vals).id
+                model_id = ProductTemplate.with_context(prefetch_fields=False, mail_notrack=True).create(vals).id
             models_data[model_code] = {'code': model['code'], 'db_id': model_id}
         return models_data
 
@@ -476,8 +464,8 @@ class SyncDocumentType(models.Model):
 
         return attribute_line_ids
 
-    def _import_parts(self, conn, row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data, models_data):
-        datas = self._extract_parts_datas(conn, row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data)
+    def _import_parts(self, conn, row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data, models_data, mif_id):
+        datas = self._extract_parts_datas(conn, row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data, mif_id)
         ProductTemplate = self.env['product.template']
         IrModelData = self.env['ir.model.data']
         ModelPart = self.env['model.part']
@@ -496,7 +484,7 @@ class SyncDocumentType(models.Model):
                 # overrtie image
                 product_id.write(d)
             else:
-                product_id = self.env['product.template'].create(d)
+                product_id = self.env['product.template'].with_context(prefetch_fields=False, mail_notrack=True).create(d)
 
                 external_id_vals = {
                     'model': 'product.template',
@@ -506,7 +494,7 @@ class SyncDocumentType(models.Model):
                 }
 
                 if not IrModelData.search_count([('model', '=', 'product.template'), ('module', '=', 'p4h'), ('res_id', '=', product_id.id)]):
-                    IrModelData.create(external_id_vals)
+                    IrModelData.with_context(prefetch_fields=False, mail_notrack=True).create(external_id_vals)
 
             # create new model datas
             for model in parts_data['models']:
@@ -532,14 +520,14 @@ class SyncDocumentType(models.Model):
                     }
                     if not ModelPart.search_count([('model_id', '=', model_id.id), ('part_id', '=', product_id.id)]):
                         # This could be done with multi records
-                        ModelPart.create(parts)
+                        ModelPart.with_context(prefetch_fields=False, mail_notrack=True).create(parts)
 
             i += 1
             print(i)
         return i
         _logger.info(str(i) + ' parts imported')
 
-    def _extract_parts_datas(self, conn, row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data):
+    def _extract_parts_datas(self, conn, row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data, mif_id):
         products = []
         group = ''
         images = conn.ls('../images')
@@ -570,6 +558,7 @@ class SyncDocumentType(models.Model):
                 default_code=part_no,
                 name=product_name,
                 image=self._find_product_image(conn, part_no, self.mif_path, images),
+                mif_id=mif_id,
                 # image=self.product_img_base64,
                 type='product',
                 product_class='p',
@@ -679,6 +668,12 @@ class SyncDocumentType(models.Model):
             return False
         jpg = conn.download_file(images_path + part_filename)
         return base64.encodestring(jpg)
+
+    def _delete_prior_data(self, mif):
+        models_to_delete = self.env['product.template'].search([('source_doc', '=', mif.name), ('product_class', '=', 'm'), ('mif_id', '=', mif.id)])
+        self.log_note += '\n\n Deleting Models %s' % (str(models_to_delete.ids))
+        _logger.info('Deleting Models' + str(models_to_delete.ids))
+        models_to_delete.unlink()
 
     # ===================================================
     # Helper MEthods

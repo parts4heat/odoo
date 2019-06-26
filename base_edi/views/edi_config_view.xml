@@ -190,7 +190,7 @@
                                             </group>
                                             <group string="MIF Files">
                                                 <field name="mif_ids" nolable="1">
-                                                    <tree>
+                                                    <tree editable="bottom">
                                                         <field name="name"/>
                                                         <field name="log_note"/>
                                                         <field name="mif_directory"/>
