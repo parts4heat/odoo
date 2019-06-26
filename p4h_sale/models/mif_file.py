@@ -11,10 +11,11 @@ class MifFile(models.Model):
     name = fields.Char(string='File Name')
     log_note = fields.Text()
     mif_directory = fields.Char()
-    state = fields.Selection([('pending', 'Pending'), ('done', 'Done'), ('error', 'Error')], default='pending')
-    manufacturer = fields.Char()
+    state = fields.Selection([('pending', 'Pending'), ('in_progress', 'In Progress'), ('done', 'Done'), ('error', 'Error')], default='pending')
     model_counts = fields.Integer(compute='_compute_count')
     part_counts = fields.Integer(compute='_compute_count')
+    parts_list = fields.Binary(string='Parts List')
+    parts_list_filename = fields.Char()
 
     @api.multi
     def _compute_count(self):

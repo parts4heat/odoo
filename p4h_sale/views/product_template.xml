@@ -151,6 +151,7 @@
                         <group>
                         <field name="manual" filename="manual_filename"/>
                         <field name="manual_filename" invisible="1"/>
+                        <field name="mif_id"/>
                         <field name="parts_list"/>
                         <field name="source_doc"/>   
                         <field name="heater_code"/>   

@@ -94,7 +94,6 @@ class ProductTemplate(models.Model):
     dependency_2_label = fields.Char(string='Dependency 2 Label')
     dependency_3_label = fields.Char(string='Dependency 3 Label')
     exploded_views = fields.One2many('exploded.view','model_id',string='Exploded Views')
-    parts_list = fields.Binary(string='Parts List')
     manual = fields.Binary(string='Manual')
     manual_filename = fields.Char(string='Manual Filename')
     mfg_id = fields.Many2one('res.partner',string='Manufacturer',domain="[('mfg_lookup','!=',0)]")
@@ -105,6 +104,7 @@ class ProductTemplate(models.Model):
     heater_code = fields.Char('Heater Code')
     heater_sizes = fields.Char('Heater Sizes')
     mif_id = fields.Many2one('mif.file', string='Mif File')
+    parts_list = fields.Binary(related='mif_id.parts_list')
 
     product_class = fields.Selection(string='Class',selection=[('m', 'Model'),('p','Part'),('s','Standard')], default='s')
     procurement_method = fields.Selection([

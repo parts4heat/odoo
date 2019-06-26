@@ -113,7 +113,7 @@ class EDIConfig(models.Model):
     @api.multi
     def do_doucument_sync(self):
         for config in self:
-            config.sync_action_ids.do_doc_sync_user()
+            config.sync_action_ids.do_doc_sync_user(True)
         return True
 
 
@@ -146,6 +146,7 @@ class EDISyncAction(models.Model):
                                   "default values when creating new records for this alias."
                                   "or can be used to pass defaults for exporting files")
     mif_ids = fields.One2many('mif.file', 'sync_action_id', string='MIF Files')
+    manufacturer = fields.Many2one('res.partner', string='Manufacturer')
 
     @api.one
     @api.constrains('action_defaults')

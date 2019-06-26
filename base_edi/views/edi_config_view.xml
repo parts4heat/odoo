@@ -164,6 +164,7 @@
                                         <field name="doc_type_id"  options="{'no_open':True,'no_create':True}"/>
                                         <field name="op_type" invisible="1"/>
                                         <field name="dir_path"/>
+                                        <field name="manufacturer"/>
                                         <field name="active"/>
                                         <field name="last_sync_date" readonly="1"/>
                                     </tree>
@@ -181,6 +182,7 @@
                                                     <field name="dir_path"/>
                                                     <field name="dir_mv_path" attrs="{'invisible': [('op_type', '!=', 'in-mv')], 'required': [('op_type', '=', 'in-mv')]}"/>
                                                     <field name="action_defaults"/>
+                                                    <field name="manufacturer"/>
                                                 </group>
                                                 <group>
                                                     <field name="sequence"/>
@@ -189,12 +191,11 @@
                                                 </group>
                                             </group>
                                             <group string="MIF Files">
-                                                <field name="mif_ids" nolable="1">
+                                                <field name="mif_ids" nolabel="1">
                                                     <tree editable="bottom">
                                                         <field name="name"/>
                                                         <field name="log_note"/>
                                                         <field name="mif_directory"/>
-                                                        <field name="manufacturer"/>
                                                         <field name="state"/>
                                                     </tree>
                                                 </field>

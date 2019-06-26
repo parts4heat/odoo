@@ -20,6 +20,9 @@
             <field name="model">mif.file</field>
             <field name="arch" type="xml">
                 <form string='MIF File'>
+                    <header>
+                        <field name="state" clickable="True" widget="statusbar" statusbar_visible="pending,in_progress,done,error" />
+                    </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
                             <button class="oe_stat_button" name="action_view_models" type="object" icon="fa-building">
@@ -39,10 +42,13 @@
                                 </div>
                             </button>
                         </div>
-                        <field name="name"/>
-                        <field name="log_note"/>
-                        <field name="state"/>
-                        <field name="create_date" string='Load Date'/>
+                        <group>
+                            <field name="name"/>
+                            <field name="log_note"/>
+                            <field name="create_date" string='Load Date'/>
+                            <field name="parts_list_filename" invisible="1"/>
+                            <field name="parts_list" filename="part_list_filename"/>
+                        </group>
                     </sheet>
                 </form>
             </field>
