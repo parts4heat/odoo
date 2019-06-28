@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class StockMove(models.Model):
@@ -11,6 +11,17 @@ class StockMove(models.Model):
         string="Storage Location",
         related="product_id.storage_location_id",
     )
+
+    @api.constrains("product_id", "location_id")
+    def set_true_putaway(self):
+        for record in self:
+            if (
+                record.product_id
+                and record.location_id
+                and record.location_id.usage == "supplier"
+                and record.product_id.storage_location_id
+            ):
+                record.location_dest_id = record.product_id.storage_location_id
 
 
 class StockMoveLine(models.Model):

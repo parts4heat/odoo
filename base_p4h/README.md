@@ -10,6 +10,7 @@ This issue is a continuation of previous developments done for this client: #1
 ## DEVELOPED 
 
 ### PRODUCT/INVENTORY
+* True Put-away Strategy employing the m2o storage_location_id field
 * Image script that retrieves images for parts from a SFTP directory
 * Reworked image script to create product image as well on the product.template record if there is not image present
 * Relabeled volusion fields on the res.partner record to be relevant after volusion change over (i.e. Procurement Vendor ID)
@@ -29,6 +30,7 @@ This issue is a continuation of previous developments done for this client: #1
 
 ### SALE 
 * Sales Order Volusion --> Odoo EDI Script via SFTP
+* Improved product alternate selection on sale order confirmation
 
 ### PURCHASE 
 * Purchase Order Volusion --> Odoo EDI Script via SFTP 
@@ -41,7 +43,6 @@ This issue is a continuation of previous developments done for this client: #1
 ## ON GOING DEVELOPMENT 
 
 ### PRODUCT/INVENTORY
-* True Put-away Strategy employing the m2o storage_location_id field
 * QoH Calculation error - still not calculating according to a normal odoo environment
 
 ### SALES/ECOMMERCE
