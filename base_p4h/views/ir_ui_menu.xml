@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+    <record model="ir.ui.menu" id="menu_shipstation_package">
+    <field name="active" eval="True"/>
+    <field name="groups_id" eval="[(6, 0, [])]"/>
+    <field name="name">Shipstation Packages</field>
+    <field name="parent_id" ref="delivery.menu_delivery"/>
+    <field name="sequence">15</field>
+    <field name="web_icon" eval="False"/>
+    <field name="action" ref="action_window_shipstation_packages"/>
+  </record>
+  <record model="ir.ui.menu" id="menu_shipstation_webhook">
+    <field name="active" eval="True"/>
+    <field name="groups_id" eval="[(6, 0, [])]"/>
+    <field name="name">Shipstation Webhooks</field>
+    <field name="parent_id" ref="delivery.menu_delivery"/>
+    <field name="sequence">20</field>
+    <field name="web_icon" eval="False"/>
+    <field name="action" ref="action_window_shipstation_webhooks"/>
+  </record>
+  </data>
+</odoo>

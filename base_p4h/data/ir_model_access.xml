@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+    <record model="ir.model.access" id="access_model_shipstation_postback">
+      <field name="name">Global</field>
+      <field name="perm_write" eval="True"/>
+      <field name="perm_unlink" eval="True"/>
+      <field name="perm_read" eval="True"/>
+      <field name="perm_create" eval="True"/>
+      <field name="model_id" ref="model_shipstation_postback"/>
+    </record>
+    <record model="ir.model.access" id="access_model_res_partner_shipping_account">
+      <field name="name">Global</field>
+      <field name="perm_write" eval="True"/>
+      <field name="perm_unlink" eval="True"/>
+      <field name="perm_read" eval="True"/>
+      <field name="perm_create" eval="True"/>
+      <field name="model_id" ref="model_res_partner_shipping_account"/>
+    </record>
+    <record model="ir.model.access" id="access_model_delivery_shipstation_carrier">
+      <field name="name">Global</field>
+      <field name="perm_write" eval="True"/>
+      <field name="perm_unlink" eval="True"/>
+      <field name="perm_read" eval="True"/>
+      <field name="perm_create" eval="True"/>
+      <field name="model_id" ref="model_delivery_shipstation_carrier"/>
+    </record>
+    <record model="ir.model.access" id="access_model_shipstation_webhook">
+      <field name="name">Global</field>
+      <field name="perm_write" eval="True"/>
+      <field name="perm_unlink" eval="True"/>
+      <field name="perm_read" eval="True"/>
+      <field name="perm_create" eval="True"/>
+      <field name="model_id" ref="model_shipstation_webhook"/>
+    </record>
+    <record model="ir.model.access" id="access_model_shipstation_warehouse">
+      <field name="name">Global</field>
+      <field name="perm_write" eval="True"/>
+      <field name="perm_unlink" eval="True"/>
+      <field name="perm_read" eval="True"/>
+      <field name="perm_create" eval="True"/>
+      <field name="model_id" ref="model_shipstation_warehouse"/>
+    </record>
+    <record model="ir.model.access" id="access_model_delivery_shipstation_package">
+      <field name="name">Global</field>
+      <field name="perm_write" eval="True"/>
+      <field name="perm_unlink" eval="True"/>
+      <field name="perm_read" eval="True"/>
+      <field name="perm_create" eval="True"/>
+      <field name="model_id" ref="model_delivery_shipstation_package"/>
+    </record>
+  </data>
+</odoo>

@@ -4,6 +4,7 @@ import os
 import re
 import csv
 import json
+import requests
 import datetime
 import ftplib
 import logging
@@ -11,7 +12,8 @@ import base64
 import paramiko
 from html.parser import HTMLParser
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -70,6 +72,233 @@ class ResCompany(models.Model):
     purchase_default_product = fields.Many2one(
         "product.product", string="Purchase Default Product"
     )
+    shipstation_key = fields.Char(string="SS Key")
+    shipstation_secret = fields.Char(string="SS Secret")
+    shipstation_root_endpoint = fields.Char(string="SS Root Endpoint")
+    shipstation_hook_ids = fields.One2many(
+        "shipstation.webhook", "company_id", string="Webhooks"
+    )
+    target_postback_url = fields.Char(
+        string="Postback Target URL",
+        placeholder="e.g https://www.odoo.com/shipstation/shipped",
+    )
+
+    @api.multi
+    def shipstation_connection(self, url, method, data_to_post):
+        for record in self:
+            if (
+                not record.shipstation_root_endpoint
+                or not record.shipstation_key
+                or not record.shipstation_secret
+            ):
+                raise UserError(
+                    _(
+                        "Shipstation API is not configured correctly, make sure all keys and urls are present."
+                    )
+                )
+            api_key = record.shipstation_key
+            secret = record.shipstation_secret
+
+            auth_string = (
+                base64.encodestring(("%s:%s" % (api_key, secret)).encode())
+                .decode()
+                .replace("\n", "")
+            )
+
+            headers = {"Authorization": "Basic %s" % auth_string}
+            if method == "DELETE":
+                r = requests.delete(url, headers=headers)
+            elif method == "POST":
+                headers.update({"Content-Type": "application/json"})
+                r = requests.post(url, data=data_to_post, headers=headers)
+            else:
+                r = requests.get(url, headers=headers)
+            return r, r.content
+
+    @api.multi
+    def shipstation_connection_post(self, url, method, data_to_post):
+        for record in self:
+            api_key = record.shipstation_key
+            secret = record.shipstation_secret
+
+            auth_string = (
+                base64.encodestring(("%s:%s" % (api_key, secret)).encode())
+                .decode()
+                .replace("\n", "")
+            )
+
+            headers = {"Authorization": "Basic %s" % auth_string}
+            r = requests.get(url, headers=headers)
+            content = r.content
+            json_object_str = content.decode("utf-8")
+            json_object = json.loads(json_object_str)
+            for shipment in json_object["shipments"]:
+                print(shipment)
+                picking = self.env["stock.picking"].browse([int(shipment["orderKey"])])
+                if picking:
+                    picking.carrier_tracking_ref = shipment["trackingNumber"]
+                    picking.message_post(
+                        body=_(
+                            "<b>Shipstation</b> order to <b>%s</b> w/ tracking number <b>%s</b> cost <b>%s</b>."
+                        )
+                        % (
+                            shipment["shipTo"]["name"],
+                            shipment["trackingNumber"],
+                            shipment["shipmentCost"],
+                        )
+                    )
+                    if picking.sale_id:
+                        picking.sale_id.message_post(
+                            body=_(
+                                "<b>Shipstation</b> order to <b>%s</b> w/ tracking number <b>%s</b> cost <b>%s</b>."
+                            )
+                            % (
+                                shipment["shipTo"]["name"],
+                                shipment["trackingNumber"],
+                                shipment["shipmentCost"],
+                            )
+                        )
+
+    @api.multi
+    def get_carriers(self):
+        for record in self:
+            url = "%s/carriers" % (record.shipstation_root_endpoint)
+            conn = record.shipstation_connection(url, "GET", False)
+            response = conn[0]
+            content = conn[1]
+            if response.status_code != requests.codes.ok:
+                raise UserError(_("%s\n%s: %s" % (url, response.status_code, content)))
+            json_object_str = content.decode("utf-8")
+            json_object = json.loads(json_object_str)
+            carrier_list = []
+            for c in json_object:
+                carrier_list.append(c["code"])
+                if not record.env["delivery.shipstation.carrier"].search(
+                    [("carrier_code", "=", c["code"])]
+                ):
+                    record.env["delivery.shipstation.carrier"].create(
+                        {"name": c["name"], "carrier_code": c["code"]}
+                    )
+            record.subscribe_webhooks()
+            record.partner_id.create_shipstation_warehouse_id()
+            return carrier_list
+
+    @api.multi
+    def subscribe_webhooks(self):
+        for record in self:
+            if not record.get_webhooks():
+                url = "%s/webhooks/subscribe" % (record.shipstation_root_endpoint)
+                target_url = record.target_postback_url
+                python_dict = {
+                    "target_url": target_url,
+                    "event": "SHIP_NOTIFY",
+                    "friendly_name": "Shipment Notification",
+                }
+                data_to_post = json.dumps(python_dict)
+                record.shipstation_connection(url, "POST", data_to_post)
+                record.get_webhooks()
+
+    @api.multi
+    def get_webhooks(self):
+        for record in self:
+            url = "%s/webhooks" % (record.shipstation_root_endpoint)
+            conn = record.shipstation_connection(url, "GET", False)
+            response = conn[0]
+            content = conn[1]
+            if response.status_code != requests.codes.ok:
+                raise UserError(_("%s\n%s: %s" % (url, response.status_code, content)))
+            json_object_str = content.decode("utf-8")
+            json_object = json.loads(json_object_str)
+            hooks = json_object["webhooks"]
+            if len(hooks) > 0:
+                for hook in hooks:
+                    if not record.env["shipstation.webhook"].search(
+                        [("web_hook_id", "=", int(hook["WebHookID"]))]
+                    ):
+                        values = {
+                            "company_id": record.id,
+                            "name": hook["Name"],
+                            "url": hook["Url"],
+                            "hook_type": hook["HookType"],
+                            "web_hook_id": int(hook["WebHookID"]),
+                            "active": hook["Active"],
+                        }
+                        record.env["shipstation.webhook"].create(values)
+                return True
+            else:
+                return False
+
+    @api.multi
+    def get_service(self):
+        for record in self:
+            carrier_list = record.get_carriers()
+            for c in carrier_list:
+                url = "%s/carriers/listservices?carrierCode=%s" % (
+                    record.shipstation_root_endpoint,
+                    c,
+                )
+                conn = record.shipstation_connection(url, "GET", False)
+                response = conn[0]
+                content = conn[1]
+                if response.status_code != requests.codes.ok:
+                    raise UserError(
+                        _("%s\n%s: %s" % (url, response.status_code, content))
+                    )
+                service = record.env["delivery.carrier"]
+                present_service_list = service.search([]).mapped("service_code")
+                json_object_str = content.decode("utf-8")
+                json_object = json.loads(json_object_str)
+                for c in json_object:
+                    if c["code"] not in present_service_list:
+                        data = {
+                            "name": c["name"],
+                            "integration_level": False,
+                            "carrier_code": record.env["delivery.shipstation.carrier"]
+                            .search([("carrier_code", "=", c["carrierCode"])])
+                            .id,
+                            "service_code": c["code"],
+                            "international": c["international"],
+                            "domestic": c["domestic"],
+                            "created_by_shipstation": True,
+                            "product_id": record.env.ref(
+                                "delivery.product_product_delivery_product_template"
+                            ).product_variant_id.id,
+                        }
+                        service.create(data)
+
+    @api.multi
+    def get_packages(self):
+        for record in self:
+            carrier_list = record.get_carriers()
+            for c in carrier_list:
+                url = "%s/carriers/listpackages?carrierCode=%s" % (
+                    record.shipstation_root_endpoint,
+                    c,
+                )
+                conn = record.shipstation_connection(url, "GET", False)
+                response = conn[0]
+                content = conn[1]
+                if response.status_code != requests.codes.ok:
+                    raise UserError(
+                        _("%s\n%s: %s" % (url, response.status_code, content))
+                    )
+                packages = record.env["delivery.shipstation.package"]
+                present_package_list = packages.search([]).mapped("code")
+                json_object_str = content.decode("utf-8")
+                json_object = json.loads(json_object_str)
+                for c in json_object:
+                    if c["code"] not in present_package_list:
+                        data = {
+                            "name": c["name"],
+                            "carrier_code": record.env["delivery.shipstation.carrier"]
+                            .search([("carrier_code", "=", c["carrierCode"])])
+                            .id,
+                            "code": c["code"],
+                            "international": c["international"],
+                            "domestic": c["domestic"],
+                            "created_by_shipstation": True,
+                        }
+                        packages.create(data)
 
     def _sftp_helper(self, sftp, files, last_update):
         stats = sftp.listdir_attr(".")

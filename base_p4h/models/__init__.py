@@ -11,6 +11,7 @@ from . import stock_move
 from . import stock_picking
 from . import stock_rule
 from . import purchase_order
+from . import shipstation
 
 __all__ = [
     "res_partner",
@@ -24,4 +25,5 @@ __all__ = [
     "stock_picking",
     "stock_rule",
     "purchase_order",
+    "shipstation",
 ]

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+    <record model="ir.actions.act_window" id="action_window_shipstation_webhooks">
+      <field name="name">Shipstation Webhook</field>
+      <field name="res_model">shipstation.postback</field>
+      <field name="groups_id" eval="[(6, 0, [])]"/>
+      <field name="auto_search" eval="True"/>
+      <field name="context">{}</field>
+      <field name="limit">80</field>
+      <field name="target">current</field>
+      <field name="type">ir.actions.act_window</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record model="ir.actions.act_window" id="action_window_shipstation_packages">
+      <field name="name">Shipstation Packages</field>
+      <field name="res_model">delivery.shipstation.package</field>
+      <field name="groups_id" eval="[(6, 0, [])]"/>
+      <field name="auto_search" eval="True"/>
+      <field name="context">{}</field>
+      <field name="limit">80</field>
+      <field name="target">current</field>
+      <field name="type">ir.actions.act_window</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record model="ir.actions.act_window" id="action_sale_order_rate_wizard">
+      <field name="auto_search" eval="True"/>
+      <field name="context">{}</field>
+      <field name="groups_id" eval="[(6, 0, [])]"/>
+      <field name="limit">80</field>
+      <field name="name">Delivery Rates</field>
+      <field name="res_model">sale.order.rate.wizard</field>
+      <field name="target">new</field>
+      <field name="type">ir.actions.act_window</field>
+      <field name="view_id" eval="False"/>
+      <field name="view_ids" eval="[(6, 0, [])]"/>
+      <field name="view_mode">form</field>
+      <field name="view_type">form</field>
+    </record>
+  </data>
+</odoo>

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ResConfigSettings(models.TransientModel):
@@ -128,3 +128,36 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.purchase_default_product",
         readonly=False,
     )
+    shipstation_key = fields.Char(
+        string="SS Key", related="company_id.shipstation_key", readonly=False
+    )
+    shipstation_secret = fields.Char(
+        string="SS Secret", related="company_id.shipstation_secret", readonly=False
+    )
+    shipstation_root_endpoint = fields.Char(
+        string="SS Root Endpoint",
+        related="company_id.shipstation_root_endpoint",
+        readonly=False,
+    )
+    shipstation_hook_ids = fields.One2many(
+        "shipstation.webhook",
+        string="Webhooks",
+        related="company_id.shipstation_hook_ids",
+        readonly=False,
+    )
+    target_postback_url = fields.Char(
+        string="Postback Target URL",
+        placeholder="e.g https://www.odoo.com/shipstation/shipped",
+        related="company_id.target_postback_url",
+        readonly=False,
+    )
+
+    @api.multi
+    def get_service(self):
+        for record in self:
+            record.company_id.get_service()
+
+    @api.multi
+    def get_packages(self):
+        for record in self:
+            record.company_id.get_packages()
