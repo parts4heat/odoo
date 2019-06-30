@@ -1,12 +1,28 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from odoo import _
+from odoo import http, api, _
 from odoo.addons.stock_barcode.controllers.main import StockBarcodeController
 from odoo.http import request
 from datetime import datetime
+from odoo import SUPERUSER_ID
 
 _logger = logging.getLogger(__name__)
+
+
+class ShipstationPortal(http.Controller):
+    def _default_request_uid(self):
+        return request.session.uid and request.session.uid or SUPERUSER_ID
+
+    @http.route(
+        "/shipstation/shipped", type="json", auth="public", csrf=False, cors="*"
+    )
+    def ship(self, req):
+        env = api.Environment(request.cr, SUPERUSER_ID, request.context)
+        url = str(req.jsonrequest.get("resource_url"))
+        new_post = env["shipstation.postback"].create({"name": url})
+        string = str(new_post.id)
+        return string
 
 
 class StockBarcodeController(StockBarcodeController):

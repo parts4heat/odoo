@@ -9,4 +9,10 @@
     <record forcecreate="True" id="unmapped_payment_term" model="account.payment.term">
         <field name="name">Unmapped Payment Term</field>
     </record>
+    <record id="shipstation_package_default" model="delivery.shipstation.package">
+      <field name="code">package</field>
+      <field name="name">Default Package</field>
+      <field name="domestic" eval="True"/>
+      <field name="international" eval="True"/>
+    </record>
 </odoo>

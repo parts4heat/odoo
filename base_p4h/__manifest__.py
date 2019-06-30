@@ -11,7 +11,7 @@
     "category": "Hidden",
     "author": "GFP Solutions LLC",
     "summary": "Custom",
-    "version": "3.5",
+    "version": "3.7",
     "description": """
 
 THIS MODULE IS PROVIDED AS IS - INSTALLATION AT USERS' OWN RISK - AUTHOR OF MODULE DOES NOT CLAIM ANY

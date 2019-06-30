@@ -245,7 +245,6 @@
             <attribute name="attrs">{'invisible':['|','|',('carrier_id','=',False),('state','not in',('draft','sent')),('delivery_rating_success','=',False)]}</attribute>
           </xpath>
           <xpath expr="//field[@name='payment_term_id']" position="after">
-          <button name="get_delivery_price" string="Check price" type="object" class="oe_inline fa fa-arrow-right oe_link"/>
           <field name="client_account" domain="[('partner_id','=',partner_id)]" string="Delivery Account"/>
           <label for="delivery_package"/>
           <div>
