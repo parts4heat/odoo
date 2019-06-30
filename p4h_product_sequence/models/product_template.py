@@ -26,17 +26,17 @@ class ProductProduct(models.Model):
 
     @api.model
     def create(self, vals):
-        if 'p4h_code' not in vals or vals['p4h_code'] == '/':
+        if vals.get('p4h_code') is None or vals.get('p4h_code') == '/':
             sequence = self.env.ref('p4h_product_sequence.seq_product_auto')
             vals['p4h_code'] = sequence.next_by_id()
         return super(ProductProduct, self).create(vals)
 
-    @api.multi
-    def write(self, vals):
-        if ('p4h_code' not in vals or vals['p4h_code'] == '/' ) and not 'alternate_of' in vals:
-            sequence = self.env.ref('p4h_product_sequence.seq_product_auto')
-            vals['p4h_code'] = sequence.next_by_id()
-        return super(ProductProduct, self).write(vals)
+#    @api.multi
+#    def write(self, vals):
+#        if (vals.get('p4h_code') is None or vals.get('p4h_code') == '/' ) and not 'alternate_of' in vals:
+#            sequence = self.env.ref('p4h_product_sequence.seq_product_auto')
+#            vals['p4h_code'] = sequence.next_by_id()
+#        return super(ProductProduct, self).write(vals)
 
     @api.multi
     def copy(self, default=None):

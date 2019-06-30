@@ -8,8 +8,49 @@
             <field name="arch" type="xml">
                 <tree string="Mif File" default_order="create_date desc">
                     <field name="name"/>
+                    <field name="log_note"/>
+                    <field name="state"/>
                     <field name="create_date" string='Load Date'/>
                 </tree>
+            </field>
+        </record>
+
+        <record id="view_mif_file_form" model="ir.ui.view">
+            <field name="name">mif.file.form</field>
+            <field name="model">mif.file</field>
+            <field name="arch" type="xml">
+                <form string='MIF File'>
+                    <header>
+                        <field name="state" clickable="True" widget="statusbar" statusbar_visible="pending,in_progress,done,error" />
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" name="action_view_models" type="object" icon="fa-building">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="model_counts" widget="statinfo" nolabel="1" class="mr4"/>
+                                    </span>
+                                    <span class="o_stat_text">Models</span>
+                                </div>
+                            </button>
+                            <button class="oe_stat_button" name="action_view_parts" type="object" icon="fa-building">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="part_counts" widget="statinfo" nolabel="1" class="mr4"/>
+                                    </span>
+                                    <span class="o_stat_text">Parts</span>
+                                </div>
+                            </button>
+                        </div>
+                        <group>
+                            <field name="name"/>
+                            <field name="log_note"/>
+                            <field name="create_date" string='Load Date'/>
+                            <field name="parts_list_filename" invisible="1"/>
+                            <field name="parts_list" filename="part_list_filename"/>
+                        </group>
+                    </sheet>
+                </form>
             </field>
         </record>
 
@@ -23,8 +64,8 @@
         <menuitem
             action="action_mif_file"
             id="menu_mif_file"
-            parent="menu_masterdata_sources"
-            sequence="20"/>
+            parent="stock.menu_stock_inventory_control"
+            sequence="190"/>
 
 </data>
 </odoo>

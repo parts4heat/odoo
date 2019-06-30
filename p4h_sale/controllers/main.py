@@ -30,7 +30,8 @@ class P4HWebsiteSale(http.Controller):
         res = super(P4HWebsiteSale, self).product(product, category='', search='', **kwargs)
         values = {
             'source_url': request.httprequest.url,
-            'source_args': request.httprequest.args,
+            'manual_set': True,
+            'tap_here': True,
         }
         return res
 

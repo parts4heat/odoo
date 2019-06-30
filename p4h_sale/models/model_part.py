@@ -24,8 +24,7 @@ class ModelPart(models.Model):
     part_default_code = fields.Char(string='Part Internal Reference',related='part_id.default_code')
     part_id = fields.Many2one('product.template',string='Part')
     part_name = fields.Char(string='Part Name',related='part_id.name')
-    #GPF
-    #qty_available_not_res = fields.Float(string='Available', related='part_id.qty_available_not_res')
+    qty_available_not_res = fields.Float(string='Available', related='part_id.qty_available_not_res')
     quantity = fields.Char(string='Quantity Required')
     source_doc = fields.Char(string='MIF Source')
     standard_price = fields.Float(string='Cost Price',related='part_id.standard_price')

@@ -56,10 +56,6 @@ groups="base.group_multi_currency"/>
 groups="base.group_multi_currency"/>
                             </div>
                         </group>
-   <group string="Metadata">
-      <field name="__last_update"/>
-      <field name="write_uid"/>
-    </group>
 
 </xpath>
 

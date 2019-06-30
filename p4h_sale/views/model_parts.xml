@@ -61,8 +61,8 @@
         <menuitem
             action="action_model_parts"
             id="menu_model_parts"
-            parent="menu_masterdata_sources"
-            sequence="30"/>
+            parent="stock.menu_stock_inventory_control"
+            sequence="200"/>
 
 </data>
 </odoo>

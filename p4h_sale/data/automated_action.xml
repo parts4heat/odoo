@@ -14,5 +14,4 @@ if record.seller_ids:
             <field name="filter_domain">[]</field>
         </record>
 
-
 </odoo>

@@ -16,7 +16,7 @@ class SaleOrderLine(models.Model):
 
     @api.onchange('product_id')
     def _onchange_product_id(self):
-        if self.product_id and not self.original_product_id:
+        if self.product_id:
             self.original_product_id = self.product_id
 
     @api.model

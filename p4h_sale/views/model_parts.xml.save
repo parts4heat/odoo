@@ -1,0 +1,41 @@
+<odoo>
+<data>
+
+         <record model="ir.ui.view" id="model_part_tree">
+            <field name="name">model.part.tree</field>
+            <field name="model">model.part</field>
+            <field name="arch" type="xml">
+              <tree>
+  <field name="source_doc"/>
+  <field name="model_default_code"/>
+  <field name="model_name"/>
+  <field name="part_default_code"/>
+  <field name="part_name"/>
+  <field name="quantity"/>
+  <field name="image_medium" widget="image" class="oe_right oe_avatar"/>
+  <field name="group"/>
+  <field name="callout"/>
+  <field name="dependency1"/>
+  <field name="dependency2"/>
+  <field name="dependency3"/>
+              </tree>
+            </field>
+        </record>
+
+
+        <record id="action_model_parts" model="ir.actions.act_window">
+            <field name="name">Model Parts</field>
+            <field name="res_model">model.part</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <menuitem
+            action="action_model_parts"
+            id="menu_model_parts"
+            parent="stock.menu_stock_inventory_control"
+            sequence="200"/>
+
+</data>
+</odoo>
+

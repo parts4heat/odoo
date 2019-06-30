@@ -1,4 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data noupdate="1">
 
+        <record id="product_attribute_fuel" model="product.attribute">
+            <field name="name">FUEL</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_it" model="product.attribute">
+            <field name="name">IGNITION TYPE</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_he" model="product.attribute">
+            <field name="name">HEAT EXCHANGER</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_construction" model="product.attribute">
+            <field name="name">CONSTRUCTION</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_altitude" model="product.attribute">
+            <field name="name">ALTITUDE</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_stages" model="product.attribute">
+            <field name="name">STAGES</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_io" model="product.attribute">
+            <field name="name">INDOOR / OUTDOOR</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_ln" model="product.attribute">
+            <field name="name">LOW NOX</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+
+        <record id="product_attribute_pt" model="product.attribute">
+            <field name="name">PUMP TYPE</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_prt" model="product.attribute">
+            <field name="name">PRV TYPE</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_het" model="product.attribute">
+            <field name="name">HEADER TYPE</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+        <record id="product_attribute_control" model="product.attribute">
+            <field name="name">CONTROL</field>
+            <field name="create_variant">no_variant</field>
+            <field name="type">radio</field>
+        </record>
+    </data>
 </odoo>
