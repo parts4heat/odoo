@@ -147,7 +147,7 @@ class SyncDocumentType(models.Model):
                     'description': worksheet.cell_value(r, 2),
                     'code': heater_code,
                     #'index_categories': index_categories,
-                    'mfg_id': int(worksheet.cell_value(r, 26)),
+                    'mfg_id': worksheet.cell_value(r, 26) and int(worksheet.cell_value(r, 26)) or False,
                 }
                 # category_ids += categories
                 # index_categories_ids.append(index_categories)
@@ -183,7 +183,7 @@ class SyncDocumentType(models.Model):
         conn.cd(sync_action_id.dir_path)
         directories = conn.ls()
         all_mifdirectories = MifFile.search([('sync_action_id', '=', sync_action_id.id)]).mapped('mif_directory')
-        for directory in filter(lambda d: d not in all_mifdirectories, directories):
+        for directory in filter(lambda d: d not in all_mifdirectories and d != 'images', directories):
             MifFile.with_context(prefetch_fields=False, mail_notrack=True).create({'name': directory, 'mif_directory': directory, 'sync_action_id': sync_action_id.id})
         self.env.cr.commit()
 
@@ -498,7 +498,7 @@ class SyncDocumentType(models.Model):
         IrModelData = self.env['ir.model.data']
         ModelPart = self.env['model.part']
         images = conn.ls('../images')
-        i = 1
+        i = 0
         x = 0
         for d in datas:
             # do not create if product is already exists with same internal reference
