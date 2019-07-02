@@ -90,10 +90,12 @@ class SyncDocumentType(models.Model):
         self.heater_sizes = ''
         self.log_note = ''
         self.state = 'pending'
+        self.image_lists = []
 
     def _extract_files_from_subdirectory(self, conn, sync_action_id, mif):
         directory = mif.mif_directory
         self.mif_path = sync_action_id.dir_path
+        self.image_lists = conn.ls(self.mif_path + 'images')
         file_path = os.path.join(sync_action_id.dir_path, directory)
         conn.cd(file_path)
         mif_files = conn.ls()
@@ -171,7 +173,7 @@ class SyncDocumentType(models.Model):
         heater_codes = self._explode_heater_code(heater_codes, used_in_row)
         attribute_ids = self._get_attributes()
         attribute_data = self._process_attributes(attributes, attribute_ids)
-        models_data = self._process_models(heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index, mif_id)
+        models_data = self._process_models(heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index, mif_id, conn)
         if not self.skip_import:
             parts = self._import_parts(
                 conn, row, workbook, worksheet, heater_codes, used_in_row, category_ids, application_fields, fields_index, index_categories_ids, attribute_data, models_data, mif_id)
@@ -368,7 +370,7 @@ class SyncDocumentType(models.Model):
                 attribute_values[value] = value_id
         return attribute_values, attribute_id
 
-    def _process_models(self, heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index, mif_id):
+    def _process_models(self, heater_codes, used_in_row, attribute_data, application_fields, fields_index, used_in_row_index, mif_id, conn):
         new_heater_codes = copy.deepcopy(heater_codes)  # deep copy
         models = []
         for heater_code in new_heater_codes:
@@ -396,7 +398,7 @@ class SyncDocumentType(models.Model):
                     #'index_categories': code['index_categories'],
                     'mfg_id': code['mfg_id'],
                     'code': ''.join(str(i) for i in comb)})
-        return self._create_models(models, attribute_data, used_in_row_index, mif_id)
+        return self._create_models(models, attribute_data, used_in_row_index, mif_id, conn)
 
     def _get_possible_combination(self, new_heater_codes):
         combinations = []
@@ -412,7 +414,7 @@ class SyncDocumentType(models.Model):
             combinations += self._get_possible_combination(mc)
         return combinations
 
-    def _create_models(self, models, attribute_data, used_in_row_index, mif_id):
+    def _create_models(self, models, attribute_data, used_in_row_index, mif_id, conn):
         _logger.info('Creating Models')
         ResPartner = self.env['res.partner']
         ProductTemplate = self.env['product.template']
@@ -453,7 +455,7 @@ class SyncDocumentType(models.Model):
                     'mif_id': mif_id,
                     'heater_code': self.heater_code,
                     'heater_sizes': self.heater_sizes,
-                    'image': self.product_img_base64,
+                    'image': self._find_product_image(conn, model_code, self.mif_path, self.image_lists),
                     # 'public_categ_ids': category_input,
                     'product_class': 'm',
                     'description': model_code.replace('-', '').replace(' ', ''),
