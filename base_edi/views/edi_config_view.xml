@@ -167,6 +167,7 @@
                                         <field name="manufacturer"/>
                                         <field name="active"/>
                                         <field name="last_sync_date" readonly="1"/>
+                                        <field name="status"/>
                                     </tree>
                                     <form string="Syncronization Action">
                                         <sheet>
@@ -183,6 +184,7 @@
                                                     <field name="dir_mv_path" attrs="{'invisible': [('op_type', '!=', 'in-mv')], 'required': [('op_type', '=', 'in-mv')]}"/>
                                                     <field name="action_defaults"/>
                                                     <field name="manufacturer"/>
+                                                    <field name="status"/>
                                                 </group>
                                                 <group>
                                                     <field name="sequence"/>

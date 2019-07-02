@@ -147,6 +147,7 @@ class EDISyncAction(models.Model):
                                   "or can be used to pass defaults for exporting files")
     mif_ids = fields.One2many('mif.file', 'sync_action_id', string='MIF Files')
     manufacturer = fields.Many2one('res.partner', string='Manufacturer')
+    status = fields.Selection([('in_progress', 'In Progress'), ('done', 'Done')], default='in_progress')
 
     @api.one
     @api.constrains('action_defaults')
@@ -182,7 +183,7 @@ class EDISyncAction(models.Model):
                                              fields.Datetime.now()),
                                             ('last_sync_date', '=', False)
                                             ])
-        for sync_action in sync_action_todo:
+        for sync_action in sync_action_todo.filtered(lambda a: a.status == 'in_progress'):
             try:
                 if use_new_cursor:
                     cr = registry(self._cr.dbname).cursor()
