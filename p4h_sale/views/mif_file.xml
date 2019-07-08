@@ -11,6 +11,8 @@
                     <field name="log_note"/>
                     <field name="state"/>
                     <field name="create_date" string='Load Date'/>
+                    <field name="processing_start_date"/>
+                    <field name="processing_end_date"/>
                 </tree>
             </field>
         </record>
@@ -48,6 +50,8 @@
                             <field name="create_date" string='Load Date'/>
                             <field name="parts_list_filename" invisible="1"/>
                             <field name="parts_list" filename="part_list_filename"/>
+                            <field name="processing_start_date"/>
+                            <field name="processing_end_date"/>
                         </group>
                     </sheet>
                 </form>
