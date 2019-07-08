@@ -16,6 +16,9 @@ class MifFile(models.Model):
     part_counts = fields.Integer(compute='_compute_count')
     parts_list = fields.Binary(string='Parts List')
     parts_list_filename = fields.Char()
+    processing_start_date = fields.Datetime()
+    processing_end_date = fields.Datetime()
+
 
     @api.multi
     def _compute_count(self):

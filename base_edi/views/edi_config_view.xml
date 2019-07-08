@@ -197,6 +197,8 @@
                                                         <field name="log_note"/>
                                                         <field name="mif_directory"/>
                                                         <field name="state"/>
+                                                        <field name="processing_start_date"/>
+                                                        <field name="processing_end_date"/>
                                                     </tree>
                                                 </field>
                                             </group>

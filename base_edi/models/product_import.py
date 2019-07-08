@@ -61,6 +61,8 @@ class SyncDocumentType(models.Model):
                 self._delete_prior_data(MIF)
                 self._extract_files_from_subdirectory(conn, sync_action_id, MIF)
                 vals = {'state': 'in_progress'}
+                if not MIF.processing_start_date:
+                    vals['processing_start_date'] = odoo_fields.Datetime.now()
                 if self.parts_list_base64:
                     vals['parts_list'] = self.parts_list_base64
                     vals['parts_list_filename'] = self.parts_list_filename
@@ -74,7 +76,7 @@ class SyncDocumentType(models.Model):
             except Exception:
                 self.LogErrorMessage()
 
-            MIF.write({'state': self.state, 'log_note': self.log_note})
+            MIF.write({'state': self.state, 'log_note': self.log_note, 'processing_end_date': odoo_fields.Datetime.now()})
 
     def _initialize_mif_variable(self):
         self.product_import_file = ''
