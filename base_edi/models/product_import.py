@@ -433,6 +433,10 @@ class SyncDocumentType(models.Model):
             model_number = re.search(r'\@\@(.*?)\@\@', model_code)
             model_number = model_number and model_number.group(1)
 
+            # get rid of = from model name
+            model_code = model_code.replace('=', '-')
+            model['code'] = model['code'].replace('=', '-')
+
             # remove model number speprator (**)
             model_code = model_code.replace('@@', '')
             model['code'] = model['code'].replace('@@', '')
@@ -537,6 +541,7 @@ class SyncDocumentType(models.Model):
                     if not m:
                         continue
                     m = m.rstrip()
+                    m = m.replace('=', '-')
                     model_id = ProductTemplate.search([('default_code', '=', m)], limit=1)
                     if not model_id:
                         break
